@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_18_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_18_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_18_000004) do
     t.date "activity_date", null: false
     t.decimal "converted_miles", precision: 10, scale: 4, null: false
     t.datetime "created_at", null: false
+    t.boolean "flagged", default: false, null: false
     t.boolean "imported", default: false, null: false
     t.string "input_type", null: false
     t.decimal "input_value", precision: 10, scale: 4, null: false
@@ -65,6 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_18_000004) do
     t.index ["activity_date"], name: "idx_submissions_activity_date"
     t.index ["converted_miles"], name: "idx_submissions_converted_miles"
     t.index ["created_at"], name: "idx_submissions_created_at"
+    t.index ["flagged"], name: "idx_submissions_flagged"
     t.index ["imported"], name: "idx_submissions_imported"
   end
 
