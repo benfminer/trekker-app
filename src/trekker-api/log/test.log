@@ -1,0 +1,871 @@
+  [1m[35mSQL (0.1ms)[0m  [1m[35mSET search_path TO public[0m
+  [1m[35m (29.4ms)[0m  [1m[35mDROP DATABASE IF EXISTS "trekker_api_test"[0m
+  [1m[35m (34.9ms)[0m  [1m[35mCREATE DATABASE "trekker_api_test" ENCODING = 'unicode'[0m
+  [1m[35mSQL (3.9ms)[0m  [1m[35mCREATE EXTENSION IF NOT EXISTS "plpgsql" SCHEMA pg_catalog[0m
+  [1m[35m (0.0ms)[0m  [1m[35mDROP TABLE IF EXISTS "admin_sessions" CASCADE[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE TABLE "admin_sessions" ("id" bigserial primary key, "admin_user_id" bigint NOT NULL, "created_at" timestamp(6) NOT NULL, "created_from_ip" character varying, "expires_at" timestamp(6) NOT NULL, "token_digest" character varying NOT NULL, "updated_at" timestamp(6) NOT NULL)[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_admin_sessions_admin_user_id" ON "admin_sessions" ("admin_user_id")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_admin_sessions_expires_at" ON "admin_sessions" ("expires_at")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "uq_admin_sessions_token_digest" ON "admin_sessions" ("token_digest")[0m
+  [1m[35m (0.0ms)[0m  [1m[35mDROP TABLE IF EXISTS "admin_users" CASCADE[0m
+  [1m[35m (1.9ms)[0m  [1m[35mCREATE TABLE "admin_users" ("id" bigserial primary key, "active" boolean DEFAULT TRUE NOT NULL, "created_at" timestamp(6) NOT NULL, "display_name" character varying, "password_digest" character varying NOT NULL, "updated_at" timestamp(6) NOT NULL, "username" character varying NOT NULL)[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "uq_admin_users_username" ON "admin_users" ("username")[0m
+  [1m[35m (0.0ms)[0m  [1m[35mDROP TABLE IF EXISTS "milestones" CASCADE[0m
+  [1m[35m (0.7ms)[0m  [1m[35mCREATE TABLE "milestones" ("id" bigserial primary key, "created_at" timestamp(6) NOT NULL, "description" text, "display_order" integer, "fun_fact" text, "mile_marker" decimal(10,4) NOT NULL, "milestone_type" character varying NOT NULL, "name" character varying NOT NULL, "triggered" boolean DEFAULT FALSE NOT NULL, "triggered_at" timestamp(6), "updated_at" timestamp(6) NOT NULL)[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_milestones_mile_marker" ON "milestones" ("mile_marker")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_milestones_type" ON "milestones" ("milestone_type")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_milestones_triggered_mile_marker" ON "milestones" ("triggered", "mile_marker")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_milestones_triggered" ON "milestones" ("triggered")[0m
+  [1m[35m (0.0ms)[0m  [1m[35mDROP TABLE IF EXISTS "submissions" CASCADE[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE TABLE "submissions" ("id" bigserial primary key, "activity_date" date NOT NULL, "converted_miles" decimal(10,4) NOT NULL, "created_at" timestamp(6) NOT NULL, "imported" boolean DEFAULT FALSE NOT NULL, "input_type" character varying NOT NULL, "input_value" decimal(10,4) NOT NULL, "name" character varying NOT NULL, "updated_at" timestamp(6) NOT NULL)[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_submissions_activity_date" ON "submissions" ("activity_date")[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "idx_submissions_converted_miles" ON "submissions" ("converted_miles")[0m
+  [1m[35m (0.2ms)[0m  [1m[35mCREATE INDEX "idx_submissions_created_at" ON "submissions" ("created_at")[0m
+  [1m[35m (0.3ms)[0m  [1m[35mCREATE INDEX "idx_submissions_imported" ON "submissions" ("imported")[0m
+  [1m[35m (0.8ms)[0m  [1m[35mALTER TABLE "admin_sessions" ADD CONSTRAINT "fk_rails_e5862922c9"
+FOREIGN KEY ("admin_user_id")
+  REFERENCES "admin_users" ("id")
+[0m
+  [1m[35m (0.5ms)[0m  [1m[35mCREATE TABLE "schema_migrations" ("version" character varying NOT NULL PRIMARY KEY)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[35m (0.1ms)[0m  [1m[32mINSERT INTO "schema_migrations" (version) VALUES (20260318000004)[0m
+  [1m[35m (0.1ms)[0m  [1m[32mINSERT INTO "schema_migrations" (version) VALUES
+(20260318000003),
+(20260318000002),
+(20260318000001);[0m
+  [1m[35m (0.5ms)[0m  [1m[35mCREATE TABLE "ar_internal_metadata" ("key" character varying NOT NULL PRIMARY KEY, "value" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL)[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.2ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1[0m  [[nil, "environment"]]
+  [1m[36mActiveRecord::InternalMetadata Create (0.1ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('environment', 'test', '2026-03-19 04:35:31.985001', '2026-03-19 04:35:31.985002') RETURNING "key"[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.0ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1[0m  [[nil, "environment"]]
+  [1m[36mActiveRecord::InternalMetadata Load (0.0ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1[0m  [[nil, "schema_sha1"]]
+  [1m[36mActiveRecord::InternalMetadata Create (0.1ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('schema_sha1', '99412b329dc9407b377f26d39c4c20728422655b', '2026-03-19 04:35:31.985473', '2026-03-19 04:35:31.985473') RETURNING "key"[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+  [1m[35m (0.4ms)[0m  [1m[35mALTER TABLE "milestones" DISABLE TRIGGER ALL;ALTER TABLE "submissions" DISABLE TRIGGER ALL;ALTER TABLE "admin_users" DISABLE TRIGGER ALL;ALTER TABLE "admin_sessions" DISABLE TRIGGER ALL;ALTER TABLE "schema_migrations" DISABLE TRIGGER ALL;ALTER TABLE "ar_internal_metadata" DISABLE TRIGGER ALL[0m
+  [1m[36mFixtures Load (1.4ms)[0m  [1m[31mDELETE FROM "admin_sessions";
+DELETE FROM "admin_users";
+INSERT INTO "admin_sessions" ("id", "admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES (319318475, 314461839, '2026-03-19 04:35:32.404717', '127.0.0.1', '2026-03-20 04:35:32', '02d3dffafa49e5e99c3dfffaa901d99c493a1aef978d0814dea3e9595ee347ff', '2026-03-19 04:35:32.404717'), (561143951, 314461839, '2026-03-19 04:35:32.404717', '127.0.0.1', '2026-03-19 03:35:32', '1cec2e5ea5ee737aec278cbb6db0b9deec7d57ee9c0d5b7a0eec9b4bc2663038', '2026-03-19 04:35:32.404717');
+INSERT INTO "admin_users" ("id", "active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES (314461839, TRUE, '2026-03-19 04:35:32.415095', 'Benjamin', '$2a$12$d1STNwrEIgHNrGENl3ks6eUec9PEfVsEIuqbJ31BKBJabN.Irqm2G', '2026-03-19 04:35:32.415095', 'benjamin'), (851682848, FALSE, '2026-03-19 04:35:32.415095', 'Inactive Admin', '$2a$12$hcwypry0lL293Oy9nHsu0.rryDDIcEybRAd.FUo2DcnyrrTfobAxe', '2026-03-19 04:35:32.415095', 'inactive')[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "milestones" ENABLE TRIGGER ALL;ALTER TABLE "submissions" ENABLE TRIGGER ALL;ALTER TABLE "admin_users" ENABLE TRIGGER ALL;ALTER TABLE "admin_sessions" ENABLE TRIGGER ALL;ALTER TABLE "schema_migrations" ENABLE TRIGGER ALL;ALTER TABLE "ar_internal_metadata" ENABLE TRIGGER ALL[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+  [1m[35m (194.1ms)[0m  [1m[35mdo $$
+  declare r record;
+BEGIN
+FOR r IN (
+  SELECT FORMAT(
+    'UPDATE pg_catalog.pg_constraint SET convalidated=false WHERE conname = ''%1$I'' AND connamespace::regnamespace = ''%2$I''::regnamespace; ALTER TABLE %2$I.%3$I VALIDATE CONSTRAINT %1$I;',
+    constraint_name,
+    table_schema,
+    table_name
+  ) AS constraint_check
+  FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY'
+)
+  LOOP
+    EXECUTE (r.constraint_check);
+  END LOOP;
+END;
+$$;
+[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------
+AdminSessionTest: test_generate_token_sets_token_digest_to_SHA-256_of_the_raw_token
+-----------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------------------
+AdminSessionTest: test_generate_token_sets_expires_at_approximately_24_hours_from_now
+-------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_expired?_returns_false_for_a_fresh_session
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_two_calls_to_generate_token_produce_different_tokens
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_expired?_returns_true_when_expires_at_is_in_the_past
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 561143951], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_a_garbage_token
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.4ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.651624"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_correct_token_on_an_expired_session
+-----------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.0ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 561143951], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------
+AdminSessionTest: test_generate_token_returns_a_non-blank_string
+----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_wrong_token
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_a_token_belonging_to_an_inactive_admin
+--------------------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 851682848], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.6ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 851682848], ["created_at", "2026-03-19 04:35:32.657524"], ["created_from_ip", nil], ["expires_at", "2026-03-20 04:35:32.657071"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:32.657524"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Load (0.4ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.658418"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_blank_token
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.0ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_blank_input
+-----------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_true_for_correct_token_on_a_non-expired_session
+-------------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_the_session_for_a_valid_token
+---------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.661310"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_an_expired_token
+----------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.662384"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_wrong_password_returns_401
+-------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:32 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="benjamin" ip=127.0.0.1
+Completed 401 Unauthorized in 190ms (Views: 0.3ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_authenticate_admin!_sets_current_admin_on_a_valid_request
+---------------------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:32 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.929031"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1 AND "admin_sessions"."token_digest" = $2 LIMIT $3[0m  [["admin_user_id", 314461839], ["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Destroy (0.3ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 319318475]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Logout for admin_user_id=314461839 ip=127.0.0.1
+Completed 200 OK in 2ms (Views: 0.0ms | ActiveRecord: 1.1ms (4 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_a_garbage_token_returns_401
+---------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:32 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:32.931927"], ["active", true], ["LIMIT", 1]]
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_valid_credentials_returns_201_and_a_token
+----------------------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:32 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.4ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 314461839], ["created_at", "2026-03-19 04:35:33.115598"], ["created_from_ip", "127.0.0.1"], ["expires_at", "2026-03-20 04:35:33.114875"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.115598"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Login succeeded for admin_user_id=314461839 ip=127.0.0.1
+Completed 201 Created in 183ms (Views: 0.0ms | ActiveRecord: 1.0ms (3 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_error_response_does_not_reveal_whether_the_username_exists
+----------------------------------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "nobody", "password" => "[FILTERED]", "session" => {"username" => "nobody", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "nobody"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="nobody" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="benjamin" ip=127.0.0.1
+Completed 401 Unauthorized in 182ms (Views: 0.1ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_an_expired_token_returns_401
+----------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:33.301075"], ["active", true], ["LIMIT", 1]]
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 1ms (Views: 0.0ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+------------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_valid_token_returns_200_and_destroys_the_session
+------------------------------------------------------------------------------------------------
+  [1m[36mAdminSession Count (2.9ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:35:33.305526"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1 AND "admin_sessions"."token_digest" = $2 LIMIT $3[0m  [["admin_user_id", 314461839], ["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Destroy (0.4ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 319318475]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Logout for admin_user_id=314461839 ip=127.0.0.1
+Completed 200 OK in 2ms (Views: 0.0ms | ActiveRecord: 1.1ms (4 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mAdminSession Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_creates_an_AdminSession_record
+------------------------------------------------------------------------
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.3ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.4ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 314461839], ["created_at", "2026-03-19 04:35:33.491477"], ["created_from_ip", "127.0.0.1"], ["expires_at", "2026-03-20 04:35:33.490746"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.491477"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Login succeeded for admin_user_id=314461839 ip=127.0.0.1
+Completed 201 Created in 184ms (Views: 0.0ms | ActiveRecord: 1.2ms (3 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_for_an_inactive_account_returns_401
+-----------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "inactive", "password" => "[FILTERED]", "session" => {"username" => "inactive", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "inactive"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="inactive" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_a_malformed_Authorization_header_returns_401
+--------------------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_missing_username_returns_400
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"password" => "[FILTERED]", "session" => {"password" => "[FILTERED]"}}
+Completed 400 Bad Request in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_without_Authorization_header_returns_401
+-----------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_unknown_username_returns_401
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "nobody", "password" => "[FILTERED]", "session" => {"username" => "nobody", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "nobody"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="nobody" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_missing_password_returns_400
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:35:33 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "session" => {"username" => "benjamin"}}
+Completed 400 Bad Request in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------
+AdminUserTest: test_active_scope_returns_only_active_accounts
+-------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 851682848], ["LIMIT", 1]]
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."id" = $2 LIMIT $3[0m  [["active", true], ["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."id" = $2 LIMIT $3[0m  [["active", true], ["id", 851682848], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------
+AdminUserTest: test_strips_whitespace_from_username_before_save
+---------------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "  spaced  "], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK TO SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------
+AdminUserTest: test_destroying_admin_user_destroys_associated_sessions
+----------------------------------------------------------------------
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.3ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "towipe"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.510531"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.510531"], ["username", "towipe"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 851682849], ["created_at", "2026-03-19 04:35:33.511661"], ["created_from_ip", nil], ["expires_at", "2026-03-20 04:35:33.511272"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.511661"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1[0m  [["admin_user_id", 851682849]]
+  [1m[36mAdminSession Destroy (0.2ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 561143955]]
+  [1m[36mAdminUser Destroy (0.4ms)[0m  [1m[31mDELETE FROM "admin_users" WHERE "admin_users"."id" = $1[0m  [["id", 851682849]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------
+AdminUserTest: test_authenticates_with_correct_password
+-------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "testuser"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.515447"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.515447"], ["username", "testuser"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------
+AdminUserTest: test_does_not_store_plaintext_password
+-----------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "noplainstorage"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.519195"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.519195"], ["username", "noplainstorage"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------
+AdminUserTest: test_requires_username
+-------------------------------------
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", ""], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------
+AdminUserTest: test_requires_unique_username
+--------------------------------------------
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "duplicate"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.522439"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.522439"], ["username", "duplicate"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "duplicate"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------
+AdminUserTest: test_has_many_admin_sessions
+-------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------
+AdminUserTest: test_unique_username_check_is_case-insensitive
+-------------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "casetest"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.526171"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.526171"], ["username", "casetest"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "CASETEST"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------
+AdminUserTest: test_rejects_usernames_with_spaces
+-------------------------------------------------
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "bad name"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------
+AdminUserTest: test_downcases_username_before_save
+--------------------------------------------------
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "UPPERCASE"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:35:33.530281"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:35:33.530281"], ["username", "uppercase"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mActiveRecord::InternalMetadata Load (1.0ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = $1 ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1[0m  [[nil, "schema_sha1"]]
+  [1m[36mActiveRecord::SchemaMigration Load (0.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "milestones" DISABLE TRIGGER ALL;ALTER TABLE "submissions" DISABLE TRIGGER ALL;ALTER TABLE "admin_users" DISABLE TRIGGER ALL;ALTER TABLE "admin_sessions" DISABLE TRIGGER ALL;ALTER TABLE "schema_migrations" DISABLE TRIGGER ALL;ALTER TABLE "ar_internal_metadata" DISABLE TRIGGER ALL[0m
+  [1m[36mFixtures Load (0.9ms)[0m  [1m[31mDELETE FROM "admin_sessions";
+DELETE FROM "admin_users";
+INSERT INTO "admin_sessions" ("id", "admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES (319318475, 314461839, '2026-03-19 04:36:31.144201', '127.0.0.1', '2026-03-20 04:36:30', '02d3dffafa49e5e99c3dfffaa901d99c493a1aef978d0814dea3e9595ee347ff', '2026-03-19 04:36:31.144201'), (561143951, 314461839, '2026-03-19 04:36:31.144201', '127.0.0.1', '2026-03-19 03:36:30', '1cec2e5ea5ee737aec278cbb6db0b9deec7d57ee9c0d5b7a0eec9b4bc2663038', '2026-03-19 04:36:31.144201');
+INSERT INTO "admin_users" ("id", "active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES (314461839, TRUE, '2026-03-19 04:36:31.148669', 'Benjamin', '$2a$12$NEUFoZ1wPte0JlF6KDTouuHrShMqdDoR8L0V.bLLGBMeuKzScQhzK', '2026-03-19 04:36:31.148669', 'benjamin'), (851682848, FALSE, '2026-03-19 04:36:31.148669', 'Inactive Admin', '$2a$12$fc6QMWD3A5Sj/GdyQ5PqB.tszilCIV.N/mb2Rjv.t/AmhbfMIH2KW', '2026-03-19 04:36:31.148669', 'inactive')[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[35m (0.2ms)[0m  [1m[35mALTER TABLE "milestones" ENABLE TRIGGER ALL;ALTER TABLE "submissions" ENABLE TRIGGER ALL;ALTER TABLE "admin_users" ENABLE TRIGGER ALL;ALTER TABLE "admin_sessions" ENABLE TRIGGER ALL;ALTER TABLE "schema_migrations" ENABLE TRIGGER ALL;ALTER TABLE "ar_internal_metadata" ENABLE TRIGGER ALL[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mCOMMIT[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+  [1m[35m (4.9ms)[0m  [1m[35mdo $$
+  declare r record;
+BEGIN
+FOR r IN (
+  SELECT FORMAT(
+    'UPDATE pg_catalog.pg_constraint SET convalidated=false WHERE conname = ''%1$I'' AND connamespace::regnamespace = ''%2$I''::regnamespace; ALTER TABLE %2$I.%3$I VALIDATE CONSTRAINT %1$I;',
+    constraint_name,
+    table_schema,
+    table_name
+  ) AS constraint_check
+  FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY'
+)
+  LOOP
+    EXECUTE (r.constraint_check);
+  END LOOP;
+END;
+$$;
+[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------------------
+AdminSessionTest: test_generate_token_sets_expires_at_approximately_24_hours_from_now
+-------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_true_for_correct_token_on_a_non-expired_session
+-------------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------
+AdminSessionTest: test_generate_token_returns_a_non-blank_string
+----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_the_session_for_a_valid_token
+---------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.4ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.169102"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_expired?_returns_true_when_expires_at_is_in_the_past
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 561143951], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_a_token_belonging_to_an_inactive_admin
+--------------------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 851682848], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 851682848], ["created_at", "2026-03-19 04:36:31.172684"], ["created_from_ip", nil], ["expires_at", "2026-03-20 04:36:31.172259"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.172684"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.173316"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_a_garbage_token
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.174373"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_blank_input
+-----------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_expired?_returns_false_for_a_fresh_session
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_wrong_token
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------
+AdminSessionTest: test_find_active_by_token_returns_nil_for_an_expired_token
+----------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.176587"], ["active", true], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+AdminSessionTest: test_two_calls_to_generate_token_produce_different_tokens
+---------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------
+AdminSessionTest: test_generate_token_sets_token_digest_to_SHA-256_of_the_raw_token
+-----------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_blank_token
+-----------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 319318475], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------------
+AdminSessionTest: test_valid_token?_returns_false_for_correct_token_on_an_expired_session
+-----------------------------------------------------------------------------------------
+  [1m[36mAdminUser Load (0.0ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."id" = $1 LIMIT $2[0m  [["id", 561143951], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_wrong_password_returns_401
+-------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="benjamin" ip=127.0.0.1
+Completed 401 Unauthorized in 186ms (Views: 0.2ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_for_an_inactive_account_returns_401
+-----------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "inactive", "password" => "[FILTERED]", "session" => {"username" => "inactive", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "inactive"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="inactive" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_unknown_username_returns_401
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "nobody", "password" => "[FILTERED]", "session" => {"username" => "nobody", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "nobody"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="nobody" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_missing_username_returns_400
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"password" => "[FILTERED]", "session" => {"password" => "[FILTERED]"}}
+Completed 400 Bad Request in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_authenticate_admin!_sets_current_admin_on_a_valid_request
+---------------------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.410128"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1 AND "admin_sessions"."token_digest" = $2 LIMIT $3[0m  [["admin_user_id", 314461839], ["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Destroy (0.2ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 319318475]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Logout for admin_user_id=314461839 ip=127.0.0.1
+Completed 200 OK in 2ms (Views: 0.0ms | ActiveRecord: 0.9ms (4 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_creates_an_AdminSession_record
+------------------------------------------------------------------------
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.3ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 314461839], ["created_at", "2026-03-19 04:36:31.595581"], ["created_from_ip", "127.0.0.1"], ["expires_at", "2026-03-20 04:36:31.594951"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.595581"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Login succeeded for admin_user_id=314461839 ip=127.0.0.1
+Completed 201 Created in 183ms (Views: 0.0ms | ActiveRecord: 0.8ms (3 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_valid_credentials_returns_201_and_a_token
+----------------------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.4ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.3ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 314461839], ["created_at", "2026-03-19 04:36:31.780612"], ["created_from_ip", "127.0.0.1"], ["expires_at", "2026-03-20 04:36:31.779900"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.780612"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Login succeeded for admin_user_id=314461839 ip=127.0.0.1
+Completed 201 Created in 184ms (Views: 0.0ms | ActiveRecord: 1.0ms (3 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_error_response_does_not_reveal_whether_the_username_exists
+----------------------------------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "nobody", "password" => "[FILTERED]", "session" => {"username" => "nobody", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.2ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "nobody"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="nobody" ip=127.0.0.1
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.2ms (1 query, 0 cached) | GC: 0.0ms)
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "password" => "[FILTERED]", "session" => {"username" => "benjamin", "password" => "[FILTERED]"}}
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."username" = $2 LIMIT $3[0m  [["active", true], ["username", "benjamin"], ["LIMIT", 1]]
+[AdminAuth] Failed login attempt for username="benjamin" ip=127.0.0.1
+Completed 401 Unauthorized in 182ms (Views: 0.1ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_without_Authorization_header_returns_401
+-----------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_login_with_missing_password_returns_400
+---------------------------------------------------------------------------
+Started POST "/admin/sessions" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#create as JSON
+  Parameters: {"username" => "benjamin", "session" => {"username" => "benjamin"}}
+Completed 400 Bad Request in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_a_malformed_Authorization_header_returns_401
+--------------------------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.0ms (0 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_a_garbage_token_returns_401
+---------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.4ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.968219"], ["active", true], ["LIMIT", 1]]
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 1ms (Views: 0.0ms | ActiveRecord: 0.4ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_an_expired_token_returns_401
+----------------------------------------------------------------------------
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.969483"], ["active", true], ["LIMIT", 1]]
+Filter chain halted as :authenticate_admin! rendered or redirected
+Completed 401 Unauthorized in 0ms (Views: 0.0ms | ActiveRecord: 0.1ms (1 query, 0 cached) | GC: 0.0ms)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+------------------------------------------------------------------------------------------------
+Admin::SessionsControllerTest: test_logout_with_valid_token_returns_200_and_destroys_the_session
+------------------------------------------------------------------------------------------------
+  [1m[36mAdminSession Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+Started DELETE "/admin/sessions/1" for 127.0.0.1 at 2026-03-18 21:36:31 -0700
+Processing by Admin::SessionsController#destroy as HTML
+  Parameters: {"id" => "1"}
+  [1m[36mAdminSession Load (0.1ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" INNER JOIN "admin_users" ON "admin_users"."id" = "admin_sessions"."admin_user_id" WHERE "admin_sessions"."token_digest" = $1 AND (admin_sessions.expires_at > $2) AND "admin_users"."active" = $3 ORDER BY "admin_sessions"."id" ASC LIMIT $4[0m  [["token_digest", "[FILTERED]"], [nil, "2026-03-19 04:36:31.970530"], ["active", true], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminSession Load (0.2ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1 AND "admin_sessions"."token_digest" = $2 LIMIT $3[0m  [["admin_user_id", 314461839], ["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Destroy (0.2ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 319318475]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+[AdminAuth] Logout for admin_user_id=314461839 ip=127.0.0.1
+Completed 200 OK in 1ms (Views: 0.0ms | ActiveRecord: 0.7ms (4 queries, 0 cached) | GC: 0.0ms)
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------
+AdminUserTest: test_requires_username
+-------------------------------------
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", ""], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-----------------------------------------------------
+AdminUserTest: test_does_not_store_plaintext_password
+-----------------------------------------------------
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "noplainstorage"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:31.982358"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.982358"], ["username", "noplainstorage"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------
+AdminUserTest: test_rejects_usernames_with_spaces
+-------------------------------------------------
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "bad name"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------
+AdminUserTest: test_has_many_admin_sessions
+-------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------
+AdminUserTest: test_active_scope_returns_only_active_accounts
+-------------------------------------------------------------
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Load (0.1ms)[0m  [1m[34mSELECT "admin_users".* FROM "admin_users" WHERE "admin_users"."id" = $1 LIMIT $2[0m  [["id", 851682848], ["LIMIT", 1]]
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."id" = $2 LIMIT $3[0m  [["active", true], ["id", 314461839], ["LIMIT", 1]]
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE "admin_users"."active" = $1 AND "admin_users"."id" = $2 LIMIT $3[0m  [["active", true], ["id", 851682848], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------
+AdminUserTest: test_authenticates_with_correct_password
+-------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "testuser"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:31.987277"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.987277"], ["username", "testuser"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------
+AdminUserTest: test_requires_unique_username
+--------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "duplicate"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:31.991079"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.991079"], ["username", "duplicate"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "duplicate"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+----------------------------------------------------------------------
+AdminUserTest: test_destroying_admin_user_destroys_associated_sessions
+----------------------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "towipe"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:31.993818"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.993818"], ["username", "towipe"]]
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_sessions" WHERE "admin_sessions"."token_digest" = $1 LIMIT $2[0m  [["token_digest", "[FILTERED]"], ["LIMIT", 1]]
+  [1m[36mAdminSession Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_sessions" ("admin_user_id", "created_at", "created_from_ip", "expires_at", "token_digest", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["admin_user_id", 851682852], ["created_at", "2026-03-19 04:36:31.994639"], ["created_from_ip", nil], ["expires_at", "2026-03-20 04:36:31.994289"], ["token_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.994639"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Load (0.3ms)[0m  [1m[34mSELECT "admin_sessions".* FROM "admin_sessions" WHERE "admin_sessions"."admin_user_id" = $1[0m  [["admin_user_id", 851682852]]
+  [1m[36mAdminSession Destroy (0.1ms)[0m  [1m[31mDELETE FROM "admin_sessions" WHERE "admin_sessions"."id" = $1[0m  [["id", 561143955]]
+  [1m[36mAdminUser Destroy (0.3ms)[0m  [1m[31mDELETE FROM "admin_users" WHERE "admin_users"."id" = $1[0m  [["id", 851682852]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminSession Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "admin_sessions"[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN[0m
+-------------------------------------------------------------
+AdminUserTest: test_unique_username_check_is_case-insensitive
+-------------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "casetest"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.2ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:31.998126"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:31.998126"], ["username", "casetest"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "casetest"], ["LIMIT", 1]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+--------------------------------------------------
+AdminUserTest: test_downcases_username_before_save
+--------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "uppercase"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:32.000981"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:32.000981"], ["username", "uppercase"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN[0m
+---------------------------------------------------------------
+AdminUserTest: test_strips_whitespace_from_username_before_save
+---------------------------------------------------------------
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mSAVEPOINT active_record_1[0m
+  [1m[36mAdminUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "admin_users" WHERE LOWER("admin_users"."username") = LOWER($1) LIMIT $2[0m  [["username", "spaced"], ["LIMIT", 1]]
+  [1m[36mAdminUser Create (0.1ms)[0m  [1m[32mINSERT INTO "admin_users" ("active", "created_at", "display_name", "password_digest", "updated_at", "username") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["active", true], ["created_at", "2026-03-19 04:36:32.002698"], ["display_name", nil], ["password_digest", "[FILTERED]"], ["updated_at", "2026-03-19 04:36:32.002698"], ["username", "spaced"]]
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mRELEASE SAVEPOINT active_record_1[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK[0m

@@ -1,0 +1,20 @@
+# Fixture admin users for test suite.
+#
+# password_digest is a BCrypt digest of "Password1!" generated via:
+#   BCrypt::Password.create("Password1!")
+#
+# The exact digest changes on each BCrypt.create call, so we use a stable
+# pre-computed value here to keep tests deterministic and fast.
+# Cost factor is reduced for speed in tests (see test_helper or env config).
+
+benjamin:
+  username: benjamin
+  password_digest: <%= BCrypt::Password.create("Password1!") %>
+  display_name: Benjamin
+  active: true
+
+inactive_admin:
+  username: inactive
+  password_digest: <%= BCrypt::Password.create("Password1!") %>
+  display_name: Inactive Admin
+  active: false

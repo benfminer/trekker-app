@@ -1,0 +1,24 @@
+# Fixture admin sessions for test suite.
+#
+# raw_token for `active_session`  is: "validtoken_abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678"
+# raw_token for `expired_session` is: "expiredtoken_bcdef1234567890abcdef1234567890abcdef1234567890abcdef123456"
+#
+# token_digest values are SHA-256 of the raw tokens above:
+#   Digest::SHA256.hexdigest("validtoken_abcdef...")
+#
+# Timestamps are static so fixtures load deterministically. The test suite
+# must not rely on `expired_session.expires_at` being in a particular future
+# or past relation to `Time.current` at fixture-load time — tests that care
+# about expiry should set expires_at explicitly on a new record.
+
+active_session:
+  admin_user: benjamin
+  token_digest: <%= Digest::SHA256.hexdigest("validtoken_abcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678") %>
+  expires_at: <%= 24.hours.from_now.iso8601 %>
+  created_from_ip: "127.0.0.1"
+
+expired_session:
+  admin_user: benjamin
+  token_digest: <%= Digest::SHA256.hexdigest("expiredtoken_bcdef1234567890abcdef1234567890abcdef1234567890abcdef123456") %>
+  expires_at: <%= 1.hour.ago.iso8601 %>
+  created_from_ip: "127.0.0.1"
