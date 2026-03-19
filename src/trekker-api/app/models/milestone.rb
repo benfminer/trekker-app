@@ -14,6 +14,7 @@ class Milestone < ApplicationRecord
   validates :mile_marker,    presence: true, numericality: { greater_than_or_equal_to: 0 }
 
   scope :untriggered,          -> { where(triggered: false) }
+  scope :triggered_ordered,    -> { where(triggered: true).order(mile_marker: :asc) }
   scope :by_mile_marker,       -> { order(mile_marker: :asc) }
   scope :crossed_by,           ->(total) { untriggered.where("mile_marker <= ?", total) }
 

@@ -67,6 +67,66 @@ module Admin
       assert_equal Submission.count, body["meta"]["total_count"]
     end
 
+    test "filter flagged=true returns only flagged submissions" do
+      get admin_submissions_path, params: { flagged: "true" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert body["submissions"].all? { |s| s["flagged"] == true }
+      # Fixtures: only flagged_submission is flagged
+      assert_equal 1, body["meta"]["total_count"]
+    end
+
+    test "filter flagged=false returns only unflagged submissions" do
+      get admin_submissions_path, params: { flagged: "false" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert body["submissions"].all? { |s| s["flagged"] == false }
+    end
+
+    test "no flagged filter returns all submissions regardless of flag status" do
+      get admin_submissions_path, headers: auth_header, as: :json
+
+      body = JSON.parse(response.body)
+      assert_equal Submission.count, body["meta"]["total_count"]
+    end
+
+    test "search filters by name case-insensitively" do
+      # Fixture: miles_submission has name "Wayne Amo"
+      get admin_submissions_path, params: { search: "wayne" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal 1, body["meta"]["total_count"]
+      assert_equal "Wayne Amo", body["submissions"].first["name"]
+    end
+
+    test "search returns multiple matches when several names contain the term" do
+      # Fixture: "Linda Vista Class" and others — search for a common substring
+      get admin_submissions_path, params: { search: "Linda" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal 1, body["meta"]["total_count"]
+      assert_equal "Linda Vista Class", body["submissions"].first["name"]
+    end
+
+    test "search returns empty results when no name matches" do
+      get admin_submissions_path, params: { search: "xyznotfound" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal 0, body["meta"]["total_count"]
+      assert_empty body["submissions"]
+    end
+
+    test "search can be combined with flagged filter" do
+      # flagged_submission has name "Ecc" and is flagged
+      get admin_submissions_path,
+          params: { search: "Ecc", flagged: "true" },
+          headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal 1, body["meta"]["total_count"]
+      assert body["submissions"].first["flagged"]
+    end
+
     test "returns 401 without Authorization header" do
       get admin_submissions_path, as: :json
       assert_response :unauthorized

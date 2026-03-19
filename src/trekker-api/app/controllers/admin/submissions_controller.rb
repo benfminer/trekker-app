@@ -17,6 +17,9 @@ module Admin
     #   page     [Integer] 1-based page number (default: 1)
     #   per_page [Integer] records per page (default: 50, max: 200)
     #   imported [String]  "true" or "false" to filter by imported status
+    #   flagged  [String]  "true" or "false" to filter by flagged status
+    #   search   [String]  case-insensitive substring match on name
+    #   sort     [String]  "date_desc" (default) — reserved for future sort options
     #
     # Returns:
     #   200 {
@@ -31,6 +34,17 @@ module Admin
       if params.key?(:imported)
         imported_val = ActiveModel::Type::Boolean.new.cast(params[:imported])
         scope = scope.where(imported: imported_val)
+      end
+
+      # Filter by flagged status when the param is explicitly provided.
+      if params.key?(:flagged)
+        flagged_val = ActiveModel::Type::Boolean.new.cast(params[:flagged])
+        scope = scope.where(flagged: flagged_val)
+      end
+
+      # Case-insensitive substring search on name.
+      if params[:search].present?
+        scope = scope.where("name ILIKE ?", "%#{params[:search].strip}%")
       end
 
       per_page    = [[params.fetch(:per_page, 50).to_i, 1].max, 200].min

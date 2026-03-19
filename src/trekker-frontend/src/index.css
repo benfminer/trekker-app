@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-trace-orange: #f97316;
+  --color-trace-black: #0a0a0a;
+  --color-trace-white: #ffffff;
+
+  /* Typography */
+  --font-display: "Oswald", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* Base resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}

@@ -100,7 +100,7 @@ TRACE Trekkers is a collective mileage-tracking web app for the TRACE school com
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| Mapbox globe animation eats the week | High | High | Timebox to 1 day. Ship a static polyline route first; animate later if time allows. |
+| Mapbox globe animation eats the week | High | High | **DECIDED 2026-03-19:** Ship animated polyline on 2D map for launch. 3D globe is a stretch goal for Sprint 3 only if time allows. |
 | CSV column structure is messy or inconsistent | Med | High | Audit CSV immediately (task 1.5). Build import script defensively with row-level error logging. |
 | Deploy issues eat launch day | Med | High | Deploy to staging by March 28 — never leave deploy for April 1. |
 | Milestone geodata sourcing takes too long | Med | Med | Use a pre-built country/capital dataset (Natural Earth or similar). Timebox to half a day. |
@@ -138,10 +138,10 @@ If time becomes tight, cut in this order:
 ## Open Items
 
 - [ ] Confirm CSV column structure for historical data migration (check previous_data/ folder)
-- [ ] Decide on school-year mile goal (total target number for the year)
-- [ ] Confirm Mapbox route style — animated polyline vs. static polyline vs. globe
+- [x] Decide on school-year mile goal — **20,286 miles** (circumference of Earth at San Diego's latitude)
+- [x] Confirm Mapbox route style — **animated polyline on 2D map for launch; 3D globe as Sprint 3 stretch goal**
 - [ ] Finalize font choices
-- [ ] Admin auth approach: simple token vs. Devise username/password
+- [x] Admin auth approach — **Custom has_secure_password + session tokens (already implemented); 2 independent admin accounts seeded manually**
 - [ ] Confirm AWS deployment specifics (Elastic Beanstalk vs. EC2 for Rails; S3+CloudFront for frontend)
 - [ ] Set production environment variables (.env.example)
 - [ ] Confirm whether more CSV data needs to be imported after launch
