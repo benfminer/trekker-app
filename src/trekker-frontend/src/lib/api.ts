@@ -1,4 +1,6 @@
 import type {
+  AdminLoginPayload,
+  AdminLoginResponse,
   AdminSubmissionsParams,
   AdminSubmissionsResponse,
   CreateSubmissionPayload,
@@ -82,6 +84,34 @@ export function createSubmission(
  */
 export function getStats(): Promise<Stats> {
   return request<Stats>("/stats")
+}
+
+// ---------------------------------------------------------------------------
+// Admin auth endpoints
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /admin/sessions
+ * Authenticate with username + password. Returns a raw Bearer token.
+ * The token is returned once and never stored server-side in plaintext.
+ */
+export function adminLogin(payload: AdminLoginPayload): Promise<AdminLoginResponse> {
+  return request<AdminLoginResponse>("/admin/sessions", {
+    method: "POST",
+    body: payload,
+  })
+}
+
+/**
+ * DELETE /admin/sessions
+ * Invalidate the current session. Requires the Bearer token.
+ * Returns undefined (200 with { message } body, but we discard it).
+ */
+export function adminLogout(adminToken: string): Promise<void> {
+  return request<void>("/admin/sessions", {
+    method: "DELETE",
+    adminToken,
+  })
 }
 
 // ---------------------------------------------------------------------------

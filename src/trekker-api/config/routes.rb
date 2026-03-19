@@ -18,8 +18,10 @@ Rails.application.routes.draw do
 
   namespace :admin do
     # POST   /admin/sessions  — login (returns Bearer token)
-    # DELETE /admin/sessions  — logout (invalidates current session)
-    resources :sessions, only: [:create, :destroy]
+    # DELETE /admin/sessions  — logout (invalidates current session via Bearer token, no ID needed)
+    resources :sessions, only: [:create] do
+      collection { delete :destroy }
+    end
 
     # GET    /admin/submissions        — paginated list
     # PATCH  /admin/submissions/:id    — edit a submission

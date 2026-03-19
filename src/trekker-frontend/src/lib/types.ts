@@ -96,6 +96,19 @@ export interface SubmissionResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Admin auth
+// ---------------------------------------------------------------------------
+
+export interface AdminLoginPayload {
+  username: string
+  password: string
+}
+
+export interface AdminLoginResponse {
+  token: string
+}
+
+// ---------------------------------------------------------------------------
 // Error shapes
 // ---------------------------------------------------------------------------
 

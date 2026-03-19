@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_18_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_19_173704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,12 +55,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_18_000005) do
 
   create_table "submissions", force: :cascade do |t|
     t.date "activity_date", null: false
-    t.decimal "converted_miles", precision: 10, scale: 4, null: false
+    t.decimal "converted_miles", precision: 12, scale: 4, null: false
     t.datetime "created_at", null: false
     t.boolean "flagged", default: false, null: false
     t.boolean "imported", default: false, null: false
     t.string "input_type", null: false
-    t.decimal "input_value", precision: 10, scale: 4, null: false
+    t.decimal "input_value", precision: 12, scale: 4, null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.index ["activity_date"], name: "idx_submissions_activity_date"
