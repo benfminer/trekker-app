@@ -8,8 +8,9 @@ import type {
   CreateSubmissionPayload,
   CreateSubmissionResponse,
   LeaderboardResponse,
-  RequestPasswordResetPayload,
-  ResetPasswordPayload,
+  CreateMilestonePayload,
+  CreateMilestoneResponse,
+  ResetAdminUserPasswordPayload,
   Stats,
   SubmissionResponse,
   UpdateSubmissionPayload,
@@ -222,26 +223,32 @@ export function createAdminUser(
 }
 
 /**
- * POST /admin/password_resets
- * Request a password reset email. Always returns 200 (prevents enumeration).
+ * POST /admin/milestones
+ * Add a new milestone (city, country, etc.) to the route.
  */
-export function requestPasswordReset(
-  payload: RequestPasswordResetPayload
-): Promise<void> {
-  return request<void>("/admin/password_resets", {
+export function createAdminMilestone(
+  payload: CreateMilestonePayload,
+  adminToken: string
+): Promise<CreateMilestoneResponse> {
+  return request<CreateMilestoneResponse>("/admin/milestones", {
     method: "POST",
     body: payload,
+    adminToken,
   })
 }
 
 /**
- * PATCH /admin/password_resets/reset
- * Consume a reset token and set a new password.
+ * PATCH /admin/users/reset_password
+ * Authenticated admin sets a new password for any admin account by username.
  */
-export function resetPassword(payload: ResetPasswordPayload): Promise<void> {
-  return request<void>("/admin/password_resets/reset", {
+export function resetAdminUserPassword(
+  payload: ResetAdminUserPasswordPayload,
+  adminToken: string
+): Promise<void> {
+  return request<void>("/admin/users/reset_password", {
     method: "PATCH",
     body: payload,
+    adminToken,
   })
 }
 

@@ -754,5 +754,31 @@ describe("AdminPage", () => {
       const link = screen.getByRole("link", { name: /\+ new user/i })
       expect(link).toHaveAttribute("href", "/admin/new-user")
     })
+
+    it("renders a reset password link", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      expect(screen.getByRole("link", { name: /reset password/i })).toBeInTheDocument()
+    })
+
+    it("reset password link points to /admin/reset-user-password", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      const link = screen.getByRole("link", { name: /reset password/i })
+      expect(link).toHaveAttribute("href", "/admin/reset-user-password")
+    })
+
+    it("renders an add milestone link", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      expect(screen.getByRole("link", { name: /\+ milestone/i })).toBeInTheDocument()
+    })
+
+    it("add milestone link points to /admin/new-milestone", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      const link = screen.getByRole("link", { name: /\+ milestone/i })
+      expect(link).toHaveAttribute("href", "/admin/new-milestone")
+    })
   })
 })

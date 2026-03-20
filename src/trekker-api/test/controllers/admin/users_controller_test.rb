@@ -87,5 +87,66 @@ module Admin
 
       assert_response :unauthorized
     end
+
+    # -------------------------------------------------------------------------
+    # PATCH /admin/users/reset_password
+    # -------------------------------------------------------------------------
+
+    test "resets an existing admin's password and returns 200" do
+      patch reset_password_admin_users_path,
+            params: { username: "benjamin", new_password: "NewPassword1!" },
+            headers: auth_headers,
+            as: :json
+
+      assert_response :ok
+      assert_equal "Password reset", JSON.parse(response.body)["message"]
+    end
+
+    test "new password takes effect — admin can authenticate with it" do
+      patch reset_password_admin_users_path,
+            params: { username: "benjamin", new_password: "ResetPass99!" },
+            headers: auth_headers,
+            as: :json
+
+      assert_response :ok
+      admin = AdminUser.find_by!(username: "benjamin")
+      assert admin.authenticate("ResetPass99!")
+    end
+
+    test "returns 404 when username does not exist" do
+      patch reset_password_admin_users_path,
+            params: { username: "nobody_here", new_password: "NewPassword1!" },
+            headers: auth_headers,
+            as: :json
+
+      assert_response :not_found
+    end
+
+    test "returns 422 when new password is too short" do
+      patch reset_password_admin_users_path,
+            params: { username: "benjamin", new_password: "short" },
+            headers: auth_headers,
+            as: :json
+
+      assert_response :unprocessable_entity
+      assert JSON.parse(response.body).key?("errors")
+    end
+
+    test "returns 400 when username is blank" do
+      patch reset_password_admin_users_path,
+            params: { username: "", new_password: "NewPassword1!" },
+            headers: auth_headers,
+            as: :json
+
+      assert_response :bad_request
+    end
+
+    test "reset_password returns 401 without a Bearer token" do
+      patch reset_password_admin_users_path,
+            params: { username: "benjamin", new_password: "NewPassword1!" },
+            as: :json
+
+      assert_response :unauthorized
+    end
   end
 end

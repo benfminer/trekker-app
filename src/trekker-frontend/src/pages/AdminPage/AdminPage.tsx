@@ -933,6 +933,19 @@ export default function AdminPage() {
 
           <div className="flex items-center gap-4">
             <Link
+              to="/admin/new-milestone"
+              className="text-sm transition-colors duration-100"
+              style={{ color: "#9ca3af" }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#e5e7eb"
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#9ca3af"
+              }}
+            >
+              + Milestone
+            </Link>
+            <Link
               to="/admin/new-user"
               className="text-sm transition-colors duration-100"
               style={{ color: "#9ca3af" }}
@@ -944,6 +957,19 @@ export default function AdminPage() {
               }}
             >
               + New user
+            </Link>
+            <Link
+              to="/admin/reset-user-password"
+              className="text-sm transition-colors duration-100"
+              style={{ color: "#9ca3af" }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#e5e7eb"
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#9ca3af"
+              }}
+            >
+              Reset password
             </Link>
             <Link
               to="/admin/change-password"

@@ -1,0 +1,49 @@
+databases:
+  - name: trekker-db
+    databaseName: trekker_production
+    user: trekker
+    plan: starter
+
+services:
+  # ---------------------------------------------------------------------------
+  # Rails API
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: trekker-api
+    runtime: ruby
+    rootDir: src/trekker-api
+    plan: starter
+    buildCommand: bin/render-build.sh
+    startCommand: bundle exec rails server -p $PORT -e production
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trekker-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false        # paste the value from config/master.key in the Render dashboard
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: CORS_ALLOWED_ORIGIN
+        sync: false        # set to your frontend URL once deployed, e.g. https://trekkers.onrender.com
+
+  # ---------------------------------------------------------------------------
+  # React frontend (static site — free tier)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: trekker-frontend
+    runtime: static
+    rootDir: src/trekker-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false        # set to your API URL once deployed, e.g. https://trekker-api.onrender.com
+      - key: VITE_MAPBOX_TOKEN
+        sync: false        # your Mapbox public token
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -144,13 +144,26 @@ export interface CreateAdminUserPayload {
   email?: string
 }
 
-export interface RequestPasswordResetPayload {
+export interface ResetAdminUserPasswordPayload {
   username: string
+  new_password: string
 }
 
-export interface ResetPasswordPayload {
-  token: string
-  new_password: string
+export interface CreateMilestonePayload {
+  name: string
+  milestone_type: MilestoneType
+  mile_marker: number
+  description?: string
+  fun_fact?: string
+}
+
+export interface CreateMilestoneResponse {
+  milestone: Milestone & {
+    description: string | null
+    fun_fact: string | null
+    triggered_at: string | null
+    created_at: string
+  }
 }
 
 // ---------------------------------------------------------------------------

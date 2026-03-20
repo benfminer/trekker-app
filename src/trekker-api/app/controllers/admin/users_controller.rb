@@ -1,10 +1,11 @@
 module Admin
-  # Admin::UsersController — allows a logged-in admin to create new admin accounts.
+  # Admin::UsersController — allows a logged-in admin to create new admin accounts
+  # and reset another admin's password.
   #
-  # POST /admin/users
+  # POST  /admin/users                    — create a new account
+  # PATCH /admin/users/reset_password     — set any admin's password by username
   #
-  # Only active admins with a valid Bearer token can create accounts.
-  # New accounts are active by default. Password must meet model validations.
+  # All actions require a valid Bearer token.
   class UsersController < ApplicationController
     before_action :authenticate_admin!
 
@@ -23,6 +24,40 @@ module Admin
         render json: serialize(admin), status: :created
       else
         render json: { errors: admin.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    # PATCH /admin/users/reset_password
+    #
+    # Lets an authenticated admin set a new password for any admin account by
+    # username — no email required. Intended for the two-admin use case where
+    # one admin resets the other's password directly.
+    #
+    # Expects: { username: String, new_password: String }
+    # Returns 200 on success.
+    # Returns 404 if username not found.
+    # Returns 422 if the new password fails model validations.
+    def reset_password
+      username     = params[:username].to_s.strip
+      new_password = params[:new_password].to_s
+
+      if username.blank? || new_password.blank?
+        return render json: { error: "username and new_password are required" },
+                      status: :bad_request
+      end
+
+      target = AdminUser.find_by(username: username)
+      unless target
+        return render json: { error: "Admin user not found" }, status: :not_found
+      end
+
+      target.password = new_password
+
+      if target.save
+        Rails.logger.info("[AdminAuth] Password reset by admin_user_id=#{current_admin.id} for username=#{username} ip=#{request.remote_ip}")
+        render json: { message: "Password reset" }, status: :ok
+      else
+        render json: { errors: target.errors.full_messages }, status: :unprocessable_entity
       end
     end
 

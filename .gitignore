@@ -1,2 +1,11 @@
 previous_data/
 src/trekker-api/tmp/
+src/trekker-api/log/
+
+# Local dev / Claude tooling
+.DS_Store
+docs/.DS_Store
+docs/content/.DS_Store
+GEMINI.md
+project-auditor.skill
+skills-dev/

@@ -39,8 +39,14 @@ Rails.application.routes.draw do
     # PATCH /admin/password — change own password (requires Bearer token)
     resource :password, only: [:update]
 
-    # POST /admin/users — create a new admin account (requires Bearer token)
-    resources :users, only: [:create]
+    # POST /admin/milestones — add a new milestone to the route (requires Bearer token)
+    resources :milestones, only: [:create]
+
+    # POST  /admin/users                  — create a new admin account (requires Bearer token)
+    # PATCH /admin/users/reset_password   — reset any admin's password by username (requires Bearer token)
+    resources :users, only: [:create] do
+      collection { patch :reset_password }
+    end
 
     # POST  /admin/password_resets        — request a reset email (public)
     # PATCH /admin/password_resets/reset  — submit new password with token (public)
