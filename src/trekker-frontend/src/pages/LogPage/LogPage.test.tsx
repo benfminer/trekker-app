@@ -471,4 +471,60 @@ describe("LogPage", () => {
       expect(btn).toBeDisabled()
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Site dropdown
+  // -------------------------------------------------------------------------
+
+  describe("site dropdown", () => {
+    it("renders a campus select with a placeholder option", () => {
+      renderLogPage()
+      const select = screen.getByLabelText(/your campus/i)
+      expect(select).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: /select your campus/i })).toBeInTheDocument()
+    })
+
+    it("lists all four campus options", () => {
+      renderLogPage()
+      expect(screen.getByRole("option", { name: "Trace North" })).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: "Trace South" })).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: "Trace East" })).toBeInTheDocument()
+      expect(screen.getByRole("option", { name: "Trace West" })).toBeInTheDocument()
+    })
+
+    it("sends the selected site in the submission payload", async () => {
+      const user = userEvent.setup()
+      const spy = vi.spyOn(api, "createSubmission").mockResolvedValue(makeSubmissionResponse())
+      renderLogPage()
+
+      await user.type(screen.getByLabelText(/your name or class name/i), "North Team")
+      await user.type(screen.getByLabelText(/how many miles/i), "3")
+      await user.selectOptions(screen.getByLabelText(/your campus/i), "trace_north")
+      await user.click(screen.getByRole("button", { name: /log your miles/i }))
+
+      await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          submission: expect.objectContaining({ site: "trace_north" }),
+        })
+      )
+    })
+
+    it("sends site: null when no campus is selected", async () => {
+      const user = userEvent.setup()
+      const spy = vi.spyOn(api, "createSubmission").mockResolvedValue(makeSubmissionResponse())
+      renderLogPage()
+
+      await user.type(screen.getByLabelText(/your name or class name/i), "Anyone")
+      await user.type(screen.getByLabelText(/how many miles/i), "2")
+      await user.click(screen.getByRole("button", { name: /log your miles/i }))
+
+      await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          submission: expect.objectContaining({ site: null }),
+        })
+      )
+    })
+  })
 })

@@ -482,4 +482,24 @@ describe("MapPage", () => {
       expect(mapEl).toBeInTheDocument()
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Rotating quotes
+  // -------------------------------------------------------------------------
+
+  describe("rotating quotes", () => {
+    it("renders a quote on the page", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+      renderMapPage()
+      // At least one of the known quotes should be in the document
+      const quoteRegion = document.querySelector("[aria-live='polite']")
+      expect(quoteRegion).toBeInTheDocument()
+    })
+
+    it("quote region has aria-live=polite for screen readers", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+      renderMapPage()
+      expect(document.querySelector("[aria-live='polite']")).toBeInTheDocument()
+    })
+  })
 })

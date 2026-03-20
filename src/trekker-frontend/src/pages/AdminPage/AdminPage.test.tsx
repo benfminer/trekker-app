@@ -719,4 +719,40 @@ describe("AdminPage", () => {
       })
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Admin settings navigation links
+  // -------------------------------------------------------------------------
+
+  describe("settings nav links", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getAdminSubmissions").mockResolvedValue(makeResponse([]))
+    })
+
+    it("renders a change password link", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      expect(screen.getByRole("link", { name: /change password/i })).toBeInTheDocument()
+    })
+
+    it("renders a new user link", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      expect(screen.getByRole("link", { name: /\+ new user/i })).toBeInTheDocument()
+    })
+
+    it("change password link points to /admin/change-password", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      const link = screen.getByRole("link", { name: /change password/i })
+      expect(link).toHaveAttribute("href", "/admin/change-password")
+    })
+
+    it("new user link points to /admin/new-user", async () => {
+      renderAdminPage()
+      await waitFor(() => screen.getByText(/no submissions yet/i))
+      const link = screen.getByRole("link", { name: /\+ new user/i })
+      expect(link).toHaveAttribute("href", "/admin/new-user")
+    })
+  })
 })

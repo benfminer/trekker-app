@@ -278,6 +278,84 @@ module Admin
       post flag_admin_submission_path(sub)
       assert_response :unauthorized
     end
+
+    # -------------------------------------------------------------------------
+    # GET /admin/submissions — site filter
+    # -------------------------------------------------------------------------
+
+    test "site filter returns only submissions for that campus" do
+      get admin_submissions_path, params: { site: "trace_north" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert body["submissions"].all? { |s| s["site"] == "trace_north" }
+      # Fixture: only north_submission has site trace_north
+      assert_equal 1, body["meta"]["total_count"]
+    end
+
+    test "site=none returns only submissions with no site set" do
+      get admin_submissions_path, params: { site: "none" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert body["submissions"].all? { |s| s["site"].nil? }
+      # Fixtures: miles, steps, imported, flagged have no site
+      assert_equal 4, body["meta"]["total_count"]
+    end
+
+    test "invalid site value returns all submissions (no filter applied)" do
+      get admin_submissions_path, params: { site: "trace_central" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal Submission.count, body["meta"]["total_count"]
+    end
+
+    test "each submission in response includes the site field" do
+      get admin_submissions_path, headers: auth_header, as: :json
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        assert s.key?("site"), "submission #{s["id"]} is missing the site key"
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # PATCH /admin/submissions/:id — site field
+    # -------------------------------------------------------------------------
+
+    test "can update site to a valid campus slug" do
+      sub = submissions(:miles_submission)
+      assert_nil sub.site
+
+      patch admin_submission_path(sub),
+            params: { submission: { site: "trace_east" } },
+            headers: auth_header,
+            as: :json
+
+      assert_response :ok
+      assert_equal "trace_east", JSON.parse(response.body)["submission"]["site"]
+    end
+
+    test "can clear site by setting it to nil" do
+      sub = submissions(:north_submission)
+      assert_equal "trace_north", sub.site
+
+      patch admin_submission_path(sub),
+            params: { submission: { site: nil } },
+            headers: auth_header,
+            as: :json
+
+      assert_response :ok
+      assert_nil JSON.parse(response.body)["submission"]["site"]
+    end
+
+    test "returns 422 when updating site to an invalid value" do
+      sub = submissions(:miles_submission)
+      patch admin_submission_path(sub),
+            params: { submission: { site: "trace_central" } },
+            headers: auth_header,
+            as: :json
+
+      assert_response :unprocessable_entity
+    end
   end
 end
 
