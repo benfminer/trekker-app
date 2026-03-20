@@ -423,7 +423,7 @@ export default function LogPage() {
   const [successData, setSuccessData] = useState<Submission | null>(null)
 
   // Focus ring tracking — which field is focused
-  const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [focusedField, _setFocusedField] = useState<string | null>(null)
 
   const submitButtonRef = useRef<HTMLButtonElement>(null)
 

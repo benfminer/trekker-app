@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
@@ -29,6 +29,7 @@ function makeSubmission(overrides: Partial<Submission> = {}): Submission {
     input_type: "miles",
     input_value: 4.2,
     converted_miles: 4.2,
+    site: null,
     imported: false,
     flagged: false,
     created_at: "2026-03-18T10:00:00Z",

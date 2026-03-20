@@ -36,6 +36,7 @@ function makeSubmissionResponse(
       input_type: "miles",
       input_value: 3.2,
       converted_miles: 3.2,
+      site: null,
       imported: false,
       flagged: false,
       created_at: new Date().toISOString(),

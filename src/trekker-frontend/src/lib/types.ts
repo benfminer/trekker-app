@@ -28,6 +28,7 @@ export interface Milestone {
   milestone_type: MilestoneType
   mile_marker: number
   description: string | null
+  triggered: boolean
   triggered_at: string | null
 }
 
