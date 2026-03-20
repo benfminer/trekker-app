@@ -78,7 +78,7 @@ module Admin
 
     test "logout with valid token returns 200 and destroys the session" do
       assert_difference "AdminSession.count", -1 do
-        delete admin_session_path(1),
+        delete admin_sessions_path,
                headers: { "Authorization" => "Bearer #{VALID_RAW_TOKEN}" }
       end
 
@@ -88,24 +88,24 @@ module Admin
     end
 
     test "logout without Authorization header returns 401" do
-      delete admin_session_path(1)
+      delete admin_sessions_path
       assert_response :unauthorized
     end
 
     test "logout with a malformed Authorization header returns 401" do
-      delete admin_session_path(1), headers: { "Authorization" => "NotBearer abc" }
+      delete admin_sessions_path, headers: { "Authorization" => "NotBearer abc" }
       assert_response :unauthorized
     end
 
     test "logout with an expired token returns 401" do
       expired_raw = "expiredtoken_bcdef1234567890abcdef1234567890abcdef1234567890abcdef123456"
-      delete admin_session_path(1),
+      delete admin_sessions_path,
              headers: { "Authorization" => "Bearer #{expired_raw}" }
       assert_response :unauthorized
     end
 
     test "logout with a garbage token returns 401" do
-      delete admin_session_path(1),
+      delete admin_sessions_path,
              headers: { "Authorization" => "Bearer totallyfake" }
       assert_response :unauthorized
     end
@@ -117,7 +117,7 @@ module Admin
     test "authenticate_admin! sets current_admin on a valid request" do
       # We verify this indirectly: a valid logout returns 200, which requires
       # current_admin to be set for the controller to find the right session.
-      delete admin_session_path(1),
+      delete admin_sessions_path,
              headers: { "Authorization" => "Bearer #{VALID_RAW_TOKEN}" }
       assert_response :ok
     end

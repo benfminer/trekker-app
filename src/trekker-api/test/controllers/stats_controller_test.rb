@@ -108,32 +108,32 @@ class StatsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "country", next_m["milestone_type"]
   end
 
-  test "next_milestone includes miles_away" do
+  test "next_milestone includes miles_remaining" do
     get stats_path, as: :json
 
     body = JSON.parse(response.body)
     next_m = body["next_milestone"]
-    assert next_m.key?("miles_away"), "next_milestone must include miles_away"
-    # Total is 2042, marker is at 100 — total already exceeds marker, so miles_away is 0
-    assert_operator next_m["miles_away"], :>=, 0
+    assert next_m.key?("miles_remaining"), "next_milestone must include miles_remaining"
+    # Total is 2042, marker is at 100 — total already exceeds marker, so miles_remaining is 0
+    assert_operator next_m["miles_remaining"], :>=, 0
   end
 
-  test "miles_away is 0 when the group has already passed the next marker" do
+  test "miles_remaining is 0 when the group has already passed the next marker" do
     # Fixture total 2042 > near_milestone marker of 100
     get stats_path, as: :json
 
     body = JSON.parse(response.body)
-    assert_equal 0.0, body["next_milestone"]["miles_away"]
+    assert_equal 0.0, body["next_milestone"]["miles_remaining"]
   end
 
-  test "miles_away is positive when the group has not yet reached the marker" do
+  test "miles_remaining is positive when the group has not yet reached the marker" do
     Submission.delete_all
 
     get stats_path, as: :json
 
     body = JSON.parse(response.body)
-    # With 0 miles, nearest marker is 100 — miles_away should be 100
-    assert_in_delta 100.0, body["next_milestone"]["miles_away"], 0.001
+    # With 0 miles, nearest marker is 100 — miles_remaining should be 100
+    assert_in_delta 100.0, body["next_milestone"]["miles_remaining"], 0.001
   end
 
   test "next_milestone is null when all milestones are triggered" do
