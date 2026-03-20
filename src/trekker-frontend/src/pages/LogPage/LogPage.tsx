@@ -1,13 +1,20 @@
 import { type FormEvent, useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { createSubmission } from "../../lib/api"
-import type { CreateSubmissionResponse, InputType, Submission } from "../../lib/types"
+import type { CreateSubmissionResponse, InputType, SiteSlug, Submission } from "../../lib/types"
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const STEPS_PER_MILE = 2500
+
+const SITE_OPTIONS: { value: SiteSlug; label: string }[] = [
+  { value: "trace_north", label: "Trace North" },
+  { value: "trace_south", label: "Trace South" },
+  { value: "trace_east",  label: "Trace East" },
+  { value: "trace_west",  label: "Trace West" },
+]
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0]
@@ -138,6 +145,7 @@ export default function LogPage() {
   const [date, setDate] = useState(today)
   const [inputType, setInputType] = useState<InputType>("miles")
   const [inputValue, setInputValue] = useState("")
+  const [site, setSite] = useState<SiteSlug | "">("")
   const [errors, setErrors] = useState<FormErrors>(EMPTY_ERRORS)
   const [hasAttempted, setHasAttempted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -205,6 +213,7 @@ export default function LogPage() {
           activity_date: date,
           input_type: inputType,
           input_value: parseFloat(inputValue),
+          site: site || null,
         },
       })
       setSuccessData(result.submission)
@@ -222,6 +231,7 @@ export default function LogPage() {
     setDate(todayISO())
     setInputType("miles")
     setInputValue("")
+    setSite("")
     setErrors(EMPTY_ERRORS)
     setHasAttempted(false)
     setApiError(null)
@@ -426,6 +436,47 @@ export default function LogPage() {
                 </div>
 
                 <FieldError message={errors.value} />
+              </div>
+
+              {/* Site (optional) */}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="site"
+                  className="text-sm font-medium text-[#2C1810]"
+                >
+                  Your campus{" "}
+                  <span className="font-normal text-[#8C7B6B]">(optional)</span>
+                </label>
+                <select
+                  id="site"
+                  value={site}
+                  onChange={(e) => setSite(e.target.value as SiteSlug | "")}
+                  disabled={loading}
+                  className={[
+                    "w-full appearance-none rounded-md border border-[#E8DDD0] bg-white px-4 py-3",
+                    "text-base text-[#2C1810]",
+                    "outline-none transition-colors duration-100",
+                    "focus:border-[#f97316]",
+                    "disabled:opacity-70",
+                    !site ? "text-[#8C7B6B]" : "",
+                  ].join(" ")}
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238C7B6B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 14px center",
+                    paddingRight: "40px",
+                  }}
+                >
+                  <option value="">— Select your campus —</option>
+                  {SITE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-[#8C7B6B]">
+                  Your miles will count toward the campus leaderboard.
+                </p>
               </div>
 
               {/* API error banner */}

@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { adminLogin } from "../../lib/api"
 import { setAdminToken } from "../../lib/auth"
 
@@ -127,6 +127,13 @@ export default function AdminLoginPage() {
               >
                 {loading ? "Signing in…" : "Sign in"}
               </button>
+
+              <Link
+                to="/admin/forgot-password"
+                className="block text-center text-xs text-white/30 underline-offset-2 hover:text-white/60 hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
           </form>
         </div>

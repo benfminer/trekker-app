@@ -83,6 +83,53 @@ end
 
 submissions_data.each { |attrs| Submission.create!(attrs) }
 
+# ---------------------------------------------------------------------------
+# Site-tagged submissions — gives the leaderboard a realistic spread
+# ---------------------------------------------------------------------------
+#
+# Trace North leads, Trace South is competitive, East is behind, West is new.
+# These are added on top of the untagged bulk data above.
+
+site_submissions = [
+  # Trace North — the leader
+  *40.times.map {
+    input_type = rand < 0.55 ? "miles" : "steps"
+    { name: names.sample, activity_date: school_year_start + rand(days_in_year),
+      input_type: input_type,
+      input_value: input_type == "miles" ? (rand * 9 + 1).round(2) : (rand * 12_000 + 3_000).round,
+      site: "trace_north", flagged: false, imported: false }
+  },
+
+  # Trace South — close second
+  *32.times.map {
+    input_type = rand < 0.5 ? "miles" : "steps"
+    { name: names.sample, activity_date: school_year_start + rand(days_in_year),
+      input_type: input_type,
+      input_value: input_type == "miles" ? (rand * 7 + 0.5).round(2) : (rand * 10_000 + 2_500).round,
+      site: "trace_south", flagged: false, imported: false }
+  },
+
+  # Trace East — a fair bit behind
+  *18.times.map {
+    input_type = rand < 0.6 ? "miles" : "steps"
+    { name: names.sample, activity_date: school_year_start + rand(days_in_year),
+      input_type: input_type,
+      input_value: input_type == "miles" ? (rand * 5 + 0.5).round(2) : (rand * 8_000 + 2_000).round,
+      site: "trace_east", flagged: false, imported: false }
+  },
+
+  # Trace West — newest campus, just getting started
+  *8.times.map {
+    { name: names.sample, activity_date: school_year_start + rand(days_in_year),
+      input_type: "miles",
+      input_value: (rand * 4 + 0.5).round(2),
+      site: "trace_west", flagged: false, imported: false }
+  }
+]
+
+site_submissions.each { |attrs| Submission.create!(attrs) }
+puts "  Added #{site_submissions.length} site-tagged submissions"
+
 total_miles = Submission.total_miles.to_f.round(1)
 puts "  Created #{Submission.count} submissions — #{total_miles} total miles"
 

@@ -22,11 +22,11 @@ class StatsControllerTest < ActionDispatch::IntegrationTest
   # ---------------------------------------------------------------------------
 
   test "total_miles equals the sum of all converted_miles" do
-    # Fixture total: 10 + 2 + 5 + 2025 = 2042
+    # Fixture total: 10 + 2 + 5 + 2025 + 20 (north) + 10 (south) = 2072
     get stats_path, as: :json
 
     body = JSON.parse(response.body)
-    assert_in_delta 2042.0, body["total_miles"], 0.001
+    assert_in_delta 2072.0, body["total_miles"], 0.001
   end
 
   test "current_position equals total_miles" do
@@ -80,7 +80,7 @@ class StatsControllerTest < ActionDispatch::IntegrationTest
     get stats_path, as: :json
 
     body = JSON.parse(response.body)
-    expected = (2042.0 / 20_286.0 * 100).round(2)
+    expected = (2072.0 / 20_286.0 * 100).round(2)
     assert_in_delta expected, body["percent_complete"], 0.01
   end
 

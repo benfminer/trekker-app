@@ -118,6 +118,53 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # ---------------------------------------------------------------------------
+  # POST /submissions — site field (optional)
+  # ---------------------------------------------------------------------------
+
+  test "accepts a valid site and includes it in the response" do
+    post submissions_path,
+         params: { submission: { name: "North Team", activity_date: "2026-03-01",
+                                 input_type: "miles", input_value: 5.0,
+                                 site: "trace_north" } },
+         as: :json
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_equal "trace_north", body["submission"]["site"]
+  end
+
+  test "site defaults to null when not provided" do
+    post submissions_path,
+         params: { submission: { name: "Anonymous", activity_date: "2026-03-01",
+                                 input_type: "miles", input_value: 3.0 } },
+         as: :json
+
+    assert_response :created
+    body = JSON.parse(response.body)
+    assert_nil body["submission"]["site"]
+  end
+
+  test "returns 422 for an invalid site value" do
+    post submissions_path,
+         params: { submission: { name: "Test", activity_date: "2026-03-01",
+                                 input_type: "miles", input_value: 3.0,
+                                 site: "trace_central" } },
+         as: :json
+
+    assert_response :unprocessable_entity
+  end
+
+  test "response always includes the site key" do
+    post submissions_path,
+         params: { submission: { name: "Test", activity_date: "2026-03-01",
+                                 input_type: "miles", input_value: 1.0 } },
+         as: :json
+
+    body = JSON.parse(response.body)
+    assert body["submission"].key?("site")
+  end
+
+  # ---------------------------------------------------------------------------
   # POST /submissions — no auth required (public endpoint)
   # ---------------------------------------------------------------------------
 

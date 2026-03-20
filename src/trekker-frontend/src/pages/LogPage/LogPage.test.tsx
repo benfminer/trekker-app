@@ -325,6 +325,7 @@ describe("LogPage", () => {
           activity_date: todayISO(),
           input_type: "miles",
           input_value: 5,
+          site: null,
         },
       })
     })

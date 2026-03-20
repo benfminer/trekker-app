@@ -11,10 +11,12 @@ benjamin:
   username: benjamin
   password_digest: <%= BCrypt::Password.create("Password1!") %>
   display_name: Benjamin
+  email: benjamin@tracetrekkers.test
   active: true
 
 inactive_admin:
   username: inactive
   password_digest: <%= BCrypt::Password.create("Password1!") %>
   display_name: Inactive Admin
+  email: null
   active: false

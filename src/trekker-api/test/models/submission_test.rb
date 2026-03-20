@@ -114,8 +114,9 @@ class SubmissionTest < ActiveSupport::TestCase
 
   test "total_miles returns the sum of all converted_miles" do
     # Fixture total: miles_submission(10) + steps_submission(2) +
-    #                imported_submission(5) + flagged_submission(2025) = 2042
-    assert_equal 2042.0, Submission.total_miles.to_f
+    #                imported_submission(5) + flagged_submission(2025) +
+    #                north_submission(20) + south_submission(10) = 2072
+    assert_equal 2072.0, Submission.total_miles.to_f
   end
 
   # ---------------------------------------------------------------------------

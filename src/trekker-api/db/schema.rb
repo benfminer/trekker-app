@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_19_173704) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_20_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -30,9 +30,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_173704) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.string "display_name"
+    t.string "email"
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.string "username", null: false
+    t.index ["email"], name: "uq_admin_users_email", unique: true, where: "(email IS NOT NULL)"
     t.index ["username"], name: "uq_admin_users_username", unique: true
   end
 
@@ -53,6 +55,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_173704) do
     t.index ["triggered"], name: "idx_milestones_triggered"
   end
 
+  create_table "password_reset_tokens", force: :cascade do |t|
+    t.bigint "admin_user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "used_at"
+    t.index ["admin_user_id"], name: "idx_password_reset_tokens_admin_user_id"
+    t.index ["expires_at"], name: "idx_password_reset_tokens_expires_at"
+    t.index ["token_digest"], name: "uq_password_reset_tokens_token_digest", unique: true
+  end
+
   create_table "submissions", force: :cascade do |t|
     t.date "activity_date", null: false
     t.decimal "converted_miles", precision: 12, scale: 4, null: false
@@ -62,13 +76,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_173704) do
     t.string "input_type", null: false
     t.decimal "input_value", precision: 12, scale: 4, null: false
     t.string "name", null: false
+    t.string "site"
     t.datetime "updated_at", null: false
     t.index ["activity_date"], name: "idx_submissions_activity_date"
     t.index ["converted_miles"], name: "idx_submissions_converted_miles"
     t.index ["created_at"], name: "idx_submissions_created_at"
     t.index ["flagged"], name: "idx_submissions_flagged"
     t.index ["imported"], name: "idx_submissions_imported"
+    t.index ["site"], name: "idx_submissions_site"
   end
 
   add_foreign_key "admin_sessions", "admin_users"
+  add_foreign_key "password_reset_tokens", "admin_users"
 end

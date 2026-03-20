@@ -3,8 +3,13 @@ import type {
   AdminLoginResponse,
   AdminSubmissionsParams,
   AdminSubmissionsResponse,
+  ChangePasswordPayload,
+  CreateAdminUserPayload,
   CreateSubmissionPayload,
   CreateSubmissionResponse,
+  LeaderboardResponse,
+  RequestPasswordResetPayload,
+  ResetPasswordPayload,
   Stats,
   SubmissionResponse,
   UpdateSubmissionPayload,
@@ -84,6 +89,14 @@ export function createSubmission(
  */
 export function getStats(): Promise<Stats> {
   return request<Stats>("/stats")
+}
+
+/**
+ * GET /leaderboard
+ * Site-based mileage totals for all four TRACE campuses.
+ */
+export function getLeaderboard(): Promise<LeaderboardResponse> {
+  return request<LeaderboardResponse>("/leaderboard")
 }
 
 // ---------------------------------------------------------------------------
@@ -175,6 +188,60 @@ export function flagAdminSubmission(
   return request<SubmissionResponse>(`/admin/submissions/${id}/flag`, {
     method: "POST",
     adminToken,
+  })
+}
+
+/**
+ * PATCH /admin/password
+ * Change the authenticated admin's password.
+ */
+export function changeAdminPassword(
+  payload: ChangePasswordPayload,
+  adminToken: string
+): Promise<void> {
+  return request<void>("/admin/password", {
+    method: "PATCH",
+    body: payload,
+    adminToken,
+  })
+}
+
+/**
+ * POST /admin/users
+ * Create a new admin account. Requires Bearer token.
+ */
+export function createAdminUser(
+  payload: CreateAdminUserPayload,
+  adminToken: string
+): Promise<void> {
+  return request<void>("/admin/users", {
+    method: "POST",
+    body: payload,
+    adminToken,
+  })
+}
+
+/**
+ * POST /admin/password_resets
+ * Request a password reset email. Always returns 200 (prevents enumeration).
+ */
+export function requestPasswordReset(
+  payload: RequestPasswordResetPayload
+): Promise<void> {
+  return request<void>("/admin/password_resets", {
+    method: "POST",
+    body: payload,
+  })
+}
+
+/**
+ * PATCH /admin/password_resets/reset
+ * Consume a reset token and set a new password.
+ */
+export function resetPassword(payload: ResetPasswordPayload): Promise<void> {
+  return request<void>("/admin/password_resets/reset", {
+    method: "PATCH",
+    body: payload,
   })
 }
 

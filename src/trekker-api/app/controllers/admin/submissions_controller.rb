@@ -18,6 +18,7 @@ module Admin
     #   per_page [Integer] records per page (default: 50, max: 200)
     #   imported [String]  "true" or "false" to filter by imported status
     #   flagged  [String]  "true" or "false" to filter by flagged status
+    #   site     [String]  one of the four campus slugs, or "none" for untagged
     #   search   [String]  case-insensitive substring match on name
     #   sort     [String]  "date_desc" (default) — reserved for future sort options
     #
@@ -40,6 +41,15 @@ module Admin
       if params.key?(:flagged)
         flagged_val = ActiveModel::Type::Boolean.new.cast(params[:flagged])
         scope = scope.where(flagged: flagged_val)
+      end
+
+      # Filter by site. "none" returns submissions with no site set.
+      if params[:site].present?
+        if params[:site] == "none"
+          scope = scope.where(site: nil)
+        elsif Submission::VALID_SITES.include?(params[:site])
+          scope = scope.for_site(params[:site])
+        end
       end
 
       # Case-insensitive substring search on name.
@@ -135,7 +145,7 @@ module Admin
     end
 
     def submission_update_params
-      params.require(:submission).permit(:name, :activity_date, :input_type, :input_value)
+      params.require(:submission).permit(:name, :activity_date, :input_type, :input_value, :site)
     end
 
     # Consistent serialization shape shared across all admin submission responses.
@@ -147,6 +157,7 @@ module Admin
         input_type:      submission.input_type,
         input_value:     submission.input_value.to_f,
         converted_miles: submission.converted_miles.to_f,
+        site:            submission.site,
         imported:        submission.imported,
         flagged:         submission.flagged,
         created_at:      submission.created_at,

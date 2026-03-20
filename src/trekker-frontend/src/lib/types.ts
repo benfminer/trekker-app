@@ -6,6 +6,8 @@ export type InputType = "miles" | "steps"
 
 export type MilestoneType = "country" | "continent" | "ocean" | "city" | "capital"
 
+export type SiteSlug = "trace_north" | "trace_south" | "trace_east" | "trace_west"
+
 export interface Submission {
   id: number
   name: string
@@ -13,6 +15,7 @@ export interface Submission {
   input_type: InputType
   input_value: number
   converted_miles: number
+  site: SiteSlug | null
   imported: boolean
   flagged: boolean
   created_at: string
@@ -59,6 +62,7 @@ export interface CreateSubmissionPayload {
     activity_date: string
     input_type: InputType
     input_value: number
+    site?: SiteSlug | null
   }
 }
 
@@ -96,6 +100,23 @@ export interface SubmissionResponse {
 }
 
 // ---------------------------------------------------------------------------
+// Leaderboard
+// ---------------------------------------------------------------------------
+
+export interface LeaderboardEntry {
+  rank: number
+  site: SiteSlug
+  display_name: string
+  total_miles: number
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[]
+  total_site_miles: number
+  updated_at: string | null
+}
+
+// ---------------------------------------------------------------------------
 // Admin auth
 // ---------------------------------------------------------------------------
 
@@ -106,6 +127,30 @@ export interface AdminLoginPayload {
 
 export interface AdminLoginResponse {
   token: string
+}
+
+// ---------------------------------------------------------------------------
+// Admin password & user management
+// ---------------------------------------------------------------------------
+
+export interface ChangePasswordPayload {
+  current_password: string
+  new_password: string
+}
+
+export interface CreateAdminUserPayload {
+  username: string
+  password: string
+  email?: string
+}
+
+export interface RequestPasswordResetPayload {
+  username: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  new_password: string
 }
 
 // ---------------------------------------------------------------------------

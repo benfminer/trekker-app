@@ -3,7 +3,8 @@
 # No authentication required. Anyone with the app URL can submit.
 #
 # POST /submissions
-#   Accepts name, activity_date, input_type ("miles" | "steps"), input_value.
+#   Accepts name, activity_date, input_type ("miles" | "steps"), input_value,
+#   and optional site ("trace_north" | "trace_south" | "trace_east" | "trace_west").
 #   Converts steps → miles at 2500 steps/mile (handled by Submission model).
 #   After a successful save, runs MilestoneTriggerService to check for newly
 #   crossed milestones.
@@ -16,10 +17,12 @@ class SubmissionsController < ApplicationController
   #   activity_date [String]  required — ISO date (YYYY-MM-DD)
   #   input_type    [String]  required — "miles" or "steps"
   #   input_value   [Decimal] required — positive number
+  #   site          [String]  optional — campus identifier for leaderboard
+  #                           one of: trace_north, trace_south, trace_east, trace_west
   #
   # Returns:
   #   201 { submission: { id, name, activity_date, input_type, input_value,
-  #                       converted_miles, imported, flagged, created_at } }
+  #                       converted_miles, site, imported, flagged, created_at } }
   #   422 { errors: { field: ["message", ...] } }
   def create
     submission = Submission.new(submission_params)
@@ -43,7 +46,7 @@ class SubmissionsController < ApplicationController
   private
 
   def submission_params
-    params.require(:submission).permit(:name, :activity_date, :input_type, :input_value)
+    params.require(:submission).permit(:name, :activity_date, :input_type, :input_value, :site)
   end
 
   # Serializes a Submission to a plain hash for JSON responses.
@@ -56,6 +59,7 @@ class SubmissionsController < ApplicationController
       input_type:      submission.input_type,
       input_value:     submission.input_value.to_f,
       converted_miles: submission.converted_miles.to_f,
+      site:            submission.site,
       imported:        submission.imported,
       flagged:         submission.flagged,
       created_at:      submission.created_at

@@ -39,3 +39,24 @@ flagged_submission:
   converted_miles: 2025.0
   imported: true
   flagged: true
+
+# Site-tagged submissions for leaderboard tests.
+north_submission:
+  name: "North Runner"
+  activity_date: "2026-03-01"
+  input_type: "miles"
+  input_value: 20.0
+  converted_miles: 20.0
+  imported: false
+  flagged: false
+  site: trace_north
+
+south_submission:
+  name: "South Walker"
+  activity_date: "2026-03-02"
+  input_type: "miles"
+  input_value: 10.0
+  converted_miles: 10.0
+  imported: false
+  flagged: false
+  site: trace_south

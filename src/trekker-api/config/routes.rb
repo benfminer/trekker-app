@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   # GET /stats — cumulative total miles, current position, next milestone
   get "stats", to: "stats#show"
 
+  # GET /leaderboard — site-based miles totals for the campus leaderboard
+  get "leaderboard", to: "leaderboard#show"
+
   # ---------------------------------------------------------------------------
   # Admin endpoints — all require Bearer token (authenticate_admin!)
   # ---------------------------------------------------------------------------
@@ -31,6 +34,18 @@ Rails.application.routes.draw do
       member do
         post :flag
       end
+    end
+
+    # PATCH /admin/password — change own password (requires Bearer token)
+    resource :password, only: [:update]
+
+    # POST /admin/users — create a new admin account (requires Bearer token)
+    resources :users, only: [:create]
+
+    # POST  /admin/password_resets        — request a reset email (public)
+    # PATCH /admin/password_resets/reset  — submit new password with token (public)
+    resources :password_resets, only: [:create] do
+      collection { patch :reset }
     end
   end
 end

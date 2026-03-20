@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   adminLogout,
   deleteAdminSubmission,
@@ -931,20 +931,48 @@ export default function AdminPage() {
             </a>
           </div>
 
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="text-sm transition-colors duration-100 disabled:opacity-40"
-            style={{ color: "#9ca3af" }}
-            onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.color = "#e5e7eb"
-            }}
-            onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.color = "#9ca3af"
-            }}
-          >
-            {loggingOut ? "Signing out…" : "Log out"}
-          </button>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/admin/new-user"
+              className="text-sm transition-colors duration-100"
+              style={{ color: "#9ca3af" }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#e5e7eb"
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#9ca3af"
+              }}
+            >
+              + New user
+            </Link>
+            <Link
+              to="/admin/change-password"
+              className="text-sm transition-colors duration-100"
+              style={{ color: "#9ca3af" }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#e5e7eb"
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = "#9ca3af"
+              }}
+            >
+              Change password
+            </Link>
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="text-sm transition-colors duration-100 disabled:opacity-40"
+              style={{ color: "#9ca3af" }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.color = "#e5e7eb"
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.color = "#9ca3af"
+              }}
+            >
+              {loggingOut ? "Signing out…" : "Log out"}
+            </button>
+          </div>
         </div>
       </div>
 
