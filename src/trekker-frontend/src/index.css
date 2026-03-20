@@ -3,8 +3,10 @@
 @theme {
   /* Brand colors */
   --color-trace-orange: #f97316;
-  --color-trace-black: #0a0a0a;
-  --color-trace-white: #ffffff;
+  --color-trace-brown: #2C1810;
+  --color-trace-parchment: #FAF7F2;
+  --color-trace-tan: #C4A882;
+  --color-trace-earth: #8C7B6B;
 
   /* Typography */
   --font-display: "Oswald", sans-serif;
@@ -18,8 +20,8 @@
 
 body {
   margin: 0;
-  background-color: #0a0a0a;
-  color: #ffffff;
+  background-color: #FAF7F2;
+  color: #2C1810;
   font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

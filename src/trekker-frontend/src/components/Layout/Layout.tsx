@@ -8,8 +8,8 @@ import { NavLink, Outlet } from "react-router-dom"
 
 export default function Layout() {
   return (
-    <div className="flex min-h-svh flex-col bg-[#0a0a0a] text-white">
-      <header className="border-b border-white/10">
+    <div className="flex min-h-svh flex-col bg-[#FAF7F2] text-[#2C1810]">
+      <header className="bg-[#2C1810] border-b border-[#1a0e08]">
         <nav className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Wordmark */}
           <span
@@ -28,7 +28,7 @@ export default function Layout() {
                 className={({ isActive }) =>
                   isActive
                     ? "text-[#f97316]"
-                    : "text-white/60 transition-colors duration-100 hover:text-white"
+                    : "text-[#C4A882] transition-colors duration-100 hover:text-white"
                 }
               >
                 Map
@@ -40,7 +40,7 @@ export default function Layout() {
                 className={({ isActive }) =>
                   isActive
                     ? "text-[#f97316]"
-                    : "text-white/60 transition-colors duration-100 hover:text-white"
+                    : "text-[#C4A882] transition-colors duration-100 hover:text-white"
                 }
               >
                 Log Activity
@@ -52,7 +52,7 @@ export default function Layout() {
                 className={({ isActive }) =>
                   isActive
                     ? "text-[#f97316]"
-                    : "text-white/60 transition-colors duration-100 hover:text-white"
+                    : "text-[#C4A882] transition-colors duration-100 hover:text-white"
                 }
               >
                 Admin

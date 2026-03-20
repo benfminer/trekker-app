@@ -58,8 +58,10 @@ The entire TRACE school community — adult students, teachers, and staff at TRA
 ### Visual Personality
 Two distinct experiences within one app:
 
-- **Log entry page:** Clean, minimal, calm. Easy to use on a phone. No distractions. Fast.
-- **Live map page:** Bold, adventurous, expedition-like. The map is the hero. Orange and black. Feels alive.
+- **Log entry page:** Clean, warm, grounded. Easy to use on a phone. Feels like a field journal — light background, earthy tones, tactile. No distractions. Fast.
+- **Live map page:** Bold, adventurous, expedition-like. The map is the hero. Feels alive and in-motion.
+
+The overall aesthetic is: expedition journal meets adventure map. Light backgrounds with warm earth tones as the foundation. Orange and black are accent colors — used for calls to action, highlights, and moments of energy — not the dominant palette. Think worn canvas, aged paper, trail markers, topographic maps.
 
 The overall product should feel empowering and celebratory — not clinical, not childish. It should feel like something worth showing off.
 
@@ -68,9 +70,19 @@ The overall product should feel empowering and celebratory — not clinical, not
 - Milestone celebration — a satisfying moment when the group crosses into a new country, continent, or body of water
 - The submission confirmation — should feel like a contribution, not just a form receipt
 
+### Color Palette
+- **Base:** Warm off-white / light parchment (e.g. #FAF7F2 or similar)
+- **Surface:** Slightly warmer white for cards and inputs (e.g. #FFFFFF or #FDF9F4)
+- **Earth tones (primary):** Warm tans, muted khakis, olive greens, dusty browns — used for backgrounds, borders, and supporting text
+- **Orange (#FF6B00 or similar):** Accent — CTAs, active states, highlights, success moments
+- **Black / near-black:** Accent — headings, key labels, map elements
+- **Muted warm gray:** Body text, secondary labels
+
 ### Design References
-- Bold adventure/expedition map aesthetics
-- School colors: Orange (#FF6B00 or similar) and Black — used confidently, not sparingly
+- Field journal / expedition logbook aesthetic
+- Topographic map and trail guide visual language
+- National park signage — bold but warm, never corporate
+- School colors (orange + black) as accent, not base
 - Clean form design: single-column, large tap targets, minimal labels
 
 ### Inspiration URLs

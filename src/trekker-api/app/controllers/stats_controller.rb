@@ -63,7 +63,7 @@ class StatsController < ApplicationController
       name:           milestone.name,
       milestone_type: milestone.milestone_type,
       mile_marker:    milestone.mile_marker.to_f,
-      miles_away:     miles_away.round(4)
+      miles_remaining: miles_away.round(4)
     }
   end
 
