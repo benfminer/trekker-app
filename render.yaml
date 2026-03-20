@@ -2,7 +2,7 @@ databases:
   - name: trekker-db
     databaseName: trekker_production
     user: trekker
-    plan: starter
+    plan: free
 
 services:
   # ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ services:
     name: trekker-api
     runtime: ruby
     rootDir: src/trekker-api
-    plan: starter
+    plan: free
     buildCommand: bin/render-build.sh
     startCommand: bundle exec rails server -p $PORT -e production
     envVars:
