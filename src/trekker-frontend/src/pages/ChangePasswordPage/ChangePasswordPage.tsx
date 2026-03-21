@@ -97,7 +97,7 @@ export default function ChangePasswordPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="currentPassword" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="currentPassword" className="text-sm font-semibold text-[#2C1810]">
               Current password
             </label>
             <input
@@ -113,7 +113,7 @@ export default function ChangePasswordPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="newPassword" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="newPassword" className="text-sm font-semibold text-[#2C1810]">
               New password
             </label>
             <input
@@ -131,7 +131,7 @@ export default function ChangePasswordPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="confirmPassword" className="text-sm font-semibold text-[#2C1810]">
               Confirm new password
             </label>
             <input

@@ -80,7 +80,7 @@ export default function NewAdminUserPage() {
           </button>
           <Link
             to="/admin"
-            className="block w-full rounded-md border border-[#E8DDD0] py-3 text-center text-sm font-medium text-[#2C1810] transition-colors hover:bg-[#F5EFE6]"
+            className="block w-full rounded-md border border-[#E8DDD0] py-3 text-center text-sm font-semibold text-[#2C1810] transition-colors hover:bg-[#F5EFE6]"
           >
             Back to dashboard
           </Link>
@@ -115,7 +115,7 @@ export default function NewAdminUserPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="username" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="username" className="text-sm font-semibold text-[#2C1810]">
               Username
             </label>
             <input
@@ -131,7 +131,7 @@ export default function NewAdminUserPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="newUserPassword" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="newUserPassword" className="text-sm font-semibold text-[#2C1810]">
               Password
             </label>
             <input
@@ -148,7 +148,7 @@ export default function NewAdminUserPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="newUserEmail" className="text-sm font-medium text-[#2C1810]">
+            <label htmlFor="newUserEmail" className="text-sm font-semibold text-[#2C1810]">
               Email{" "}
               <span className="font-normal text-[#8C7B6B]">(optional — required for password reset)</span>
             </label>

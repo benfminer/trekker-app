@@ -2,6 +2,8 @@ previous_data/
 src/trekker-api/tmp/
 src/trekker-api/log/
 
+frontend screenshots/
+
 # Local dev / Claude tooling
 .DS_Store
 docs/.DS_Store

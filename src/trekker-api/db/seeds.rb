@@ -6,8 +6,8 @@
 #
 # What gets seeded:
 #   - 2 admin users (benjamin, admin)
-#   - ~165 submissions spread over the current school year, mix of miles/steps,
-#     individual and class names, giving ~7,000 total miles
+#   - ~165 individual submissions + ~110 class-event submissions + site-tagged data
+#     targeting ~10,000 total miles (halfway to the 20,286 mile goal)
 #   - 20 milestones along the route from San Diego (20,286 mile goal)
 
 puts "Seeding development data..."
@@ -84,6 +84,49 @@ end
 submissions_data.each { |attrs| Submission.create!(attrs) }
 
 # ---------------------------------------------------------------------------
+# Class-event submissions — whole PE classes / group challenge days
+# These are the bulk of the mileage, targeting ~10,000 total miles.
+# Individual submissions above give ~1,200 miles; class events add ~7,500.
+# ---------------------------------------------------------------------------
+
+class_names = [
+  "Ms. Rodriguez's 2nd Period PE", "Mr. Chen's 3rd Period PE",
+  "Coach Williams — Morning Run", "7th Grade PE — Block 1",
+  "7th Grade PE — Block 2", "8th Grade PE — Block 1",
+  "8th Grade PE — Block 2", "Cross Country Team",
+  "Ms. Kim's Advisory Challenge", "Mrs. Patel's Homeroom",
+  "Staff Walking Group", "Coach Davis — Track Team",
+  "6th Grade Step Challenge", "Lunch Miles Club",
+  "After School Run Club", "Parent & Staff 5K Day",
+]
+
+# Small class events: 40–80 miles (one class period, 20–30 students)
+80.times do
+  Submission.create!(
+    name:          class_names.sample,
+    activity_date: school_year_start + rand(days_in_year),
+    input_type:    "miles",
+    input_value:   (rand * 40 + 40).round(1),
+    flagged:       false,
+    imported:      false
+  )
+end
+
+# Large class events: 80–150 miles (multi-class or challenge day)
+30.times do
+  Submission.create!(
+    name:          class_names.sample,
+    activity_date: school_year_start + rand(days_in_year),
+    input_type:    "miles",
+    input_value:   (rand * 70 + 80).round(1),
+    flagged:       false,
+    imported:      false
+  )
+end
+
+puts "  Added class-event submissions"
+
+# ---------------------------------------------------------------------------
 # Site-tagged submissions — gives the leaderboard a realistic spread
 # ---------------------------------------------------------------------------
 #
@@ -91,38 +134,38 @@ submissions_data.each { |attrs| Submission.create!(attrs) }
 # These are added on top of the untagged bulk data above.
 
 site_submissions = [
-  # Trace North — the leader
-  *40.times.map {
+  # Trace North — the leader (~1,400 miles)
+  *60.times.map {
     input_type = rand < 0.55 ? "miles" : "steps"
     { name: names.sample, activity_date: school_year_start + rand(days_in_year),
       input_type: input_type,
-      input_value: input_type == "miles" ? (rand * 9 + 1).round(2) : (rand * 12_000 + 3_000).round,
+      input_value: input_type == "miles" ? (rand * 20 + 5).round(2) : (rand * 12_000 + 3_000).round,
       site: "trace_north", flagged: false, imported: false }
   },
 
-  # Trace South — close second
-  *32.times.map {
+  # Trace South — close second (~1,100 miles)
+  *55.times.map {
     input_type = rand < 0.5 ? "miles" : "steps"
     { name: names.sample, activity_date: school_year_start + rand(days_in_year),
       input_type: input_type,
-      input_value: input_type == "miles" ? (rand * 7 + 0.5).round(2) : (rand * 10_000 + 2_500).round,
+      input_value: input_type == "miles" ? (rand * 16 + 4).round(2) : (rand * 10_000 + 2_500).round,
       site: "trace_south", flagged: false, imported: false }
   },
 
-  # Trace East — a fair bit behind
-  *18.times.map {
+  # Trace East — a fair bit behind (~700 miles)
+  *35.times.map {
     input_type = rand < 0.6 ? "miles" : "steps"
     { name: names.sample, activity_date: school_year_start + rand(days_in_year),
       input_type: input_type,
-      input_value: input_type == "miles" ? (rand * 5 + 0.5).round(2) : (rand * 8_000 + 2_000).round,
+      input_value: input_type == "miles" ? (rand * 14 + 3).round(2) : (rand * 8_000 + 2_000).round,
       site: "trace_east", flagged: false, imported: false }
   },
 
-  # Trace West — newest campus, just getting started
-  *8.times.map {
+  # Trace West — newest campus (~350 miles)
+  *20.times.map {
     { name: names.sample, activity_date: school_year_start + rand(days_in_year),
       input_type: "miles",
-      input_value: (rand * 4 + 0.5).round(2),
+      input_value: (rand * 12 + 3).round(2),
       site: "trace_west", flagged: false, imported: false }
   }
 ]
