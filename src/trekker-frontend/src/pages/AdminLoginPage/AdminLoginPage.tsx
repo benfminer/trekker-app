@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-[#0a0a0a] px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] px-4">
       <div className="w-full max-w-sm">
         {/* Wordmark */}
         <div className="mb-10 text-center">

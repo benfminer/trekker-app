@@ -13,7 +13,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export default function Layout() {
   return (
-    <div className="flex min-h-svh flex-col bg-[#FAF7F2] text-[#2C1810]">
+    <div className="flex min-h-screen flex-col bg-[#FAF7F2] text-[#2C1810]">
       <header className="bg-[#2C1810] border-b border-[#1a0e08]">
         <nav className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Wordmark */}
