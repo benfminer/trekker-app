@@ -18,14 +18,14 @@ export default function Layout() {
         <nav className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6">
           {/* Wordmark */}
           <span
-            className="text-lg font-bold uppercase tracking-widest text-[#f97316]"
+            className="text-base font-bold uppercase tracking-widest text-[#f97316] sm:text-lg"
             style={{ fontFamily: "'Oswald', sans-serif" }}
           >
             TRACE Trekkers
           </span>
 
           {/* Primary nav — public pages */}
-          <ul className="flex items-center gap-6 text-sm font-medium">
+          <ul className="flex items-center gap-3 text-xs font-medium sm:gap-6 sm:text-sm">
             <li>
               <NavLink to="/" end className={navLinkClass}>
                 Map

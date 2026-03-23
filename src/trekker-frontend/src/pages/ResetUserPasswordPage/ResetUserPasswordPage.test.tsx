@@ -35,7 +35,7 @@ describe("ResetUserPasswordPage", () => {
 
   it("renders a back link to the dashboard", () => {
     renderPage()
-    expect(screen.getByRole("link", { name: /back to dashboard/i })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument()
   })
 
   // -------------------------------------------------------------------------
@@ -89,7 +89,7 @@ describe("ResetUserPasswordPage", () => {
       expect(screen.getByText(/password reset/i)).toBeInTheDocument()
     })
     expect(screen.getByText(/otherAdmin/)).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: /back to dashboard/i })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument()
   })
 
   it("calls resetAdminUserPassword with the username and new password", async () => {

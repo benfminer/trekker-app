@@ -243,7 +243,7 @@ function StatsDisplay({ stats, onRetry, fetchError }: StatsDisplayProps) {
   return (
     <>
       {/* Miles logged */}
-      <div className="flex flex-1 flex-col gap-1 border-r border-[#1f1f1f] px-4 py-5 last:border-r-0">
+      <div className="flex flex-1 flex-col gap-1 px-4 py-5">
         <span
           className="text-[32px] leading-none text-white sm:text-[36px]"
           style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700 }}
@@ -256,7 +256,7 @@ function StatsDisplay({ stats, onRetry, fetchError }: StatsDisplayProps) {
       </div>
 
       {/* Percent of goal */}
-      <div className="flex flex-1 flex-col gap-1 border-r border-[#1f1f1f] px-4 py-5 last:border-r-0">
+      <div className="flex flex-1 flex-col gap-1 px-4 py-5">
         <span
           className="text-[32px] leading-none text-white sm:text-[36px]"
           style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700 }}
@@ -834,7 +834,7 @@ function MapPageInner({ token }: { token: string }) {
           className="border-b border-[#1f1f1f]"
           data-testid="stats-panel"
         >
-          <div className="mx-auto flex max-w-screen-xl divide-x divide-[#1f1f1f]">
+          <div className="mx-auto flex max-w-screen-xl flex-col divide-y divide-[#1f1f1f] sm:flex-row sm:divide-x sm:divide-y-0">
             {showSkeleton ? (
               <StatsSkeleton />
             ) : (

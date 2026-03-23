@@ -148,7 +148,7 @@ function SiteCard({ entry, maxMiles, index }: SiteCardProps) {
               Rank {entry.rank}
             </p>
             <h2
-              className="text-[22px] font-bold uppercase leading-tight text-white sm:text-[26px]"
+              className="text-[18px] font-bold uppercase leading-tight text-white sm:text-[26px]"
               style={{ fontFamily: "'Oswald', sans-serif" }}
             >
               {entry.display_name}
@@ -161,7 +161,7 @@ function SiteCard({ entry, maxMiles, index }: SiteCardProps) {
           <AnimatedCounter
             target={entry.total_miles}
             className={[
-              "block text-[28px] font-bold leading-none sm:text-[34px]",
+              "block text-[22px] font-bold leading-none sm:text-[34px]",
               isFirst ? "text-[#f97316]" : "text-white",
             ].join(" ")}
           />
