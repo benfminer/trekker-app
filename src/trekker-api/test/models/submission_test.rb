@@ -71,6 +71,32 @@ class SubmissionTest < ActiveSupport::TestCase
     assert_not sub.valid?
   end
 
+  test "rejects miles input_value above 500" do
+    sub = Submission.new(name: "Someone", activity_date: Date.today,
+                         input_type: "miles", input_value: 501.0)
+    assert_not sub.valid?
+    assert sub.errors[:input_value].any?
+  end
+
+  test "accepts miles input_value at the 500 limit" do
+    sub = Submission.new(name: "Someone", activity_date: Date.today,
+                         input_type: "miles", input_value: 500.0)
+    assert sub.valid?, sub.errors.full_messages.inspect
+  end
+
+  test "rejects steps input_value above 1_250_000" do
+    sub = Submission.new(name: "Someone", activity_date: Date.today,
+                         input_type: "steps", input_value: 1_250_001.0)
+    assert_not sub.valid?
+    assert sub.errors[:input_value].any?
+  end
+
+  test "accepts steps input_value at the 1_250_000 limit" do
+    sub = Submission.new(name: "Someone", activity_date: Date.today,
+                         input_type: "steps", input_value: 1_250_000.0)
+    assert sub.valid?, sub.errors.full_messages.inspect
+  end
+
   # ---------------------------------------------------------------------------
   # Step conversion
   # ---------------------------------------------------------------------------

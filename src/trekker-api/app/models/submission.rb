@@ -23,6 +23,8 @@ class Submission < ApplicationRecord
                             numericality: { greater_than: 0 }
   validates :site,          inclusion: { in: VALID_SITES }, allow_nil: true
 
+  validate :input_value_within_bounds
+
   # converted_miles is computed before validation so the presence check always
   # passes on a valid record — callers should never set it directly.
   before_validation :compute_converted_miles
@@ -65,6 +67,17 @@ class Submission < ApplicationRecord
   end
 
   private
+
+  # Rejects absurdly large single-entry submissions that would distort the map
+  # or leaderboard. Max: 500 miles or 1,250,000 steps per entry.
+  def input_value_within_bounds
+    return unless input_value.present? && input_type.present?
+
+    max = input_type == "steps" ? 1_250_000 : 500
+    if input_value > max
+      errors.add(:input_value, "is too large (max #{max} #{input_type} per entry)")
+    end
+  end
 
   # Sets converted_miles from input_type and input_value.
   # Called before_validation so computed_miles is always in sync.
