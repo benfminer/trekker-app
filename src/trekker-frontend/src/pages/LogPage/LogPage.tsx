@@ -20,10 +20,6 @@ function todayISO(): string {
   return new Date().toISOString().split("T")[0]
 }
 
-function formatMiles(miles: number): string {
-  return miles % 1 === 0 ? String(miles) : miles.toFixed(1).replace(/\.?0+$/, "")
-}
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
