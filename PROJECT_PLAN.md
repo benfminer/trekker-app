@@ -45,16 +45,16 @@ TRACE Trekkers is a collective mileage-tracking web app for the TRACE school com
 | 2.13 | Add `site` column to submissions (nullable, enum: 4 sites) | db-architect | S | — |
 | 2.14 | Update POST /submissions to accept optional `site` field | api-builder | S | 2.13 |
 | 2.15 | Add optional site dropdown to submission form | frontend-developer | S | 2.14 |
-| 2.16 | Build GET /leaderboard endpoint (miles grouped by site) | api-builder | S | 2.13 |
-| 2.17 | Build leaderboard page — dark dashboard, animated counters, ranked site cards, progress bars | frontend-developer | L | 2.16 |
-| 2.18 | Add leaderboard to public nav; move admin link to bottom of page (small) | frontend-developer | S | 2.17 |
+| 2.16 | Build GET /campus_trail endpoint — site miles + geographic narrative milestone per campus | api-builder | S | 2.13 |
+| 2.17 | Build Campus Trail page — dark dashboard, campus cards with narrative milestone, progress bars | frontend-developer | L | 2.16 |
+| 2.18 | Add Campus Trail to public nav; move admin link to bottom of page (small) | frontend-developer | S | 2.17 |
 | 2.19 | Add rotating inspirational quotes to map and log pages | frontend-developer | S | — |
 | 2.20 | Build PATCH /admin/password endpoint (change own password) | auth-agent | S | — |
 | 2.21 | Build POST /admin/users endpoint (create new admin account) | auth-agent | S | — |
-| 2.22 | Build forgot password flow — request token endpoint, email send, reset endpoint | auth-agent + integrations-agent | M | — |
+| 2.22 | ~~Build forgot password flow~~ — REMOVED (no email service) | — | — | — |
 | 2.23 | Build change password UI (admin settings) | frontend-developer | S | 2.20 |
 | 2.24 | Build create admin account UI (admin dashboard) | frontend-developer | S | 2.21 |
-| 2.25 | Build forgot password UI — request form + reset form | frontend-developer | S | 2.22 |
+| 2.25 | ~~Build forgot password UI~~ — REMOVED (no email service) | — | — | — |
 | 2.26 | Write announcement email — Outlook-safe HTML, NY ad agency energy, launch challenge | content-writer | M | — |
 
 ### Phase 3 Tasks
@@ -64,7 +64,7 @@ TRACE Trekkers is a collective mileage-tracking web app for the TRACE school com
 | 3.1 | Mobile responsiveness pass — log entry, leaderboard, map | frontend-developer | M | All Phase 2 |
 | 3.2 | Cross-browser and device QA | qa-agent | M | 3.1 |
 | 3.3 | End-to-end test: submission → map update + leaderboard update | qa-agent | S | All Phase 2 |
-| 3.4 | Wire up transactional email service (Postmark or SendGrid) | integrations-agent | S | 2.22 |
+| 3.4 | ~~Wire up transactional email service~~ — REMOVED (no email service) | — | — | — |
 | 3.5 | Deploy Rails API to AWS; configure environment variables | You | M | All Phase 2 |
 | 3.6 | Deploy React frontend to AWS (S3 + CloudFront); configure domain | You | S | 3.5 |
 | 3.7 | Run CSV migration in production; verify all 7,135 miles visible on map | You | S | 3.5 |
@@ -81,11 +81,11 @@ TRACE Trekkers is a collective mileage-tracking web app for the TRACE school com
 
 ### Sprint 2 — Week of 2026-03-20 (current)
 **Focus:** New features — leaderboard, admin self-service, password recovery, quotes, announcement email.
-**Tasks:** 2.11, 2.12, 2.13–2.26
-**Deliverable:** Full leaderboard working locally. Admin can change password, create accounts, and reset via email (stub OK). Rotating quotes live. Announcement email drafted.
+**Tasks:** 2.11, 2.12, 2.13–2.21, 2.23, 2.24, 2.26
+**Deliverable:** Campus Trail page working locally. Admin can change password and create accounts. Rotating quotes live. Announcement email drafted.
 
 ### Sprint 3 — Week of 2026-03-28
-**Focus:** QA, polish, email service, deploy.
+**Focus:** QA, polish, deploy.
 **Tasks:** 3.1–3.9
 **Deliverable:** App live at production URL. All 7,135 historical miles on the map. Site leaderboard live. Announcement email ready to send on April 1.
 
@@ -96,7 +96,7 @@ TRACE Trekkers is a collective mileage-tracking web app for the TRACE school com
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
 | Leaderboard animation complexity eats time | Med | Med | Build static version first; add motion as enhancement if time allows |
-| Email service setup (Postmark/SendGrid) blocks forgot password | Med | Med | Stub email in dev with Rails ActionMailer preview; wire real service in Sprint 3 |
+| ~~Email service setup blocks forgot password~~ | — | — | REMOVED — email service and forgot password flow cut from scope |
 | Mapbox globe animation eats time | Low | High | **DECIDED 2026-03-19:** Ship animated polyline on 2D map for launch. 3D globe is Sprint 3 stretch only. |
 | Deploy issues eat launch day | Med | High | Deploy to staging by March 28 — never leave deploy for April 1. |
 | CSV column structure inconsistency | Low | Low | Already resolved — import script running clean. |
@@ -119,9 +119,9 @@ If time becomes tight, cut in this order:
 | Agent | Handles |
 |---|---|
 | `db-architect` | Site column migration, password reset tokens schema |
-| `auth-agent` | Change password endpoint, create admin endpoint, forgot password email token flow |
-| `api-builder` | Leaderboard endpoint, updated submission endpoint (site field) |
-| `frontend-developer` | Leaderboard page, site dropdown, rotating quotes, admin nav repositioning, password/account UI |
+| `auth-agent` | Change password endpoint, create admin endpoint |
+| `api-builder` | Campus Trail endpoint, updated submission endpoint (site field) |
+| `frontend-developer` | Campus Trail page, site dropdown, rotating quotes, admin nav repositioning, password/account UI |
 | `integrations-agent` | Transactional email service (Postmark/SendGrid) wiring |
 | `content-writer` | Rotating quote placement spec, Outlook-safe HTML announcement email |
 | `qa-agent` | API tests, component tests, end-to-end flow tests |
@@ -132,7 +132,7 @@ If time becomes tight, cut in this order:
 
 ## Open Items
 
-- [ ] Select transactional email service (Postmark vs. SendGrid) — blocks forgot password flow
+- [x] ~~Select transactional email service~~ — REMOVED, no email service, forgot password flow cut
 - [ ] Confirm AWS deployment specifics (Elastic Beanstalk vs. EC2 for Rails)
 - [ ] Set production environment variables (.env.example)
 - [ ] Confirm whether more CSV data needs to be imported after launch

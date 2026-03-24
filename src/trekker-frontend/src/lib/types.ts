@@ -101,20 +101,22 @@ export interface SubmissionResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Leaderboard
+// Campus Trail
 // ---------------------------------------------------------------------------
 
-export interface LeaderboardEntry {
-  rank: number
-  site: SiteSlug
-  display_name: string
-  total_miles: number
+export interface CampusTrailEntry {
+  site: string
+  miles: number
+  milestone: string
+  milestone_location: string
+  coordinates: {
+    lat: number
+    lng: number
+  }
 }
 
-export interface LeaderboardResponse {
-  leaderboard: LeaderboardEntry[]
-  total_site_miles: number
-  updated_at: string | null
+export interface CampusTrailResponse {
+  campus_trail: CampusTrailEntry[]
 }
 
 // ---------------------------------------------------------------------------

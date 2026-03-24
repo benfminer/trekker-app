@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react"
-import { Link } from "react-router-dom"
-import { createSubmission } from "../../lib/api"
-import type { CreateSubmissionResponse, InputType, SiteSlug, Submission } from "../../lib/types"
+import { useNavigate } from "react-router-dom"
+import { createSubmission, getStats } from "../../lib/api"
+import type { CreateSubmissionResponse, InputType, SiteSlug } from "../../lib/types"
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -46,83 +46,6 @@ function FieldError({ message }: FieldErrorProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Success state
-// ---------------------------------------------------------------------------
-
-interface SuccessStateProps {
-  submission: Submission
-  onLogMore: () => void
-}
-
-function SuccessState({ submission, onLogMore }: SuccessStateProps) {
-  const miles = formatMiles(submission.converted_miles)
-  const wasSteps = submission.input_type === "steps"
-
-  return (
-    <div
-      className="flex flex-col items-center gap-6 py-10 text-center"
-      style={{ animation: "fadeIn 200ms ease-in forwards" }}
-    >
-      {/* Check circle */}
-      <div
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f97316]"
-        style={{ animation: "popIn 280ms cubic-bezier(0.34,1.56,0.64,1) 150ms both" }}
-        aria-hidden="true"
-      >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      </div>
-
-      {/* Message */}
-      <div className="flex flex-col gap-2">
-        <p
-          className="text-2xl font-bold uppercase tracking-wide text-[#2C1810]"
-          style={{ fontFamily: "'Oswald', sans-serif" }}
-        >
-          You just added{" "}
-          <span className="text-[#f97316]">{miles} miles</span>
-          {wasSteps
-            ? ` (${submission.input_value.toLocaleString()} steps)`
-            : null}{" "}
-          to the journey.
-        </p>
-        <p className="text-base text-[#8C7B6B]">
-          The TRACE Suns are on the move.
-        </p>
-      </div>
-
-      {/* Secondary CTA */}
-      <Link
-        to="/"
-        className="mt-2 block w-full rounded-md bg-[#f97316] py-3.5 text-center font-bold uppercase tracking-wider text-white transition-opacity duration-100 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97316]"
-        style={{ fontFamily: "'Oswald', sans-serif", fontSize: "16px", minHeight: "52px", lineHeight: "52px", paddingTop: 0, paddingBottom: 0 }}
-      >
-        See where we are
-      </Link>
-
-      {/* Reset link */}
-      <button
-        type="button"
-        onClick={onLogMore}
-        className="text-sm text-[#f97316] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97316]"
-      >
-        Log more activity
-      </button>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Form state
 // ---------------------------------------------------------------------------
 
@@ -140,6 +63,7 @@ const EMPTY_ERRORS: FormErrors = { name: null, date: null, value: null }
 
 export default function LogPage() {
   const today = todayISO()
+  const navigate = useNavigate()
 
   const [name, setName] = useState("")
   const [date, setDate] = useState(today)
@@ -150,7 +74,21 @@ export default function LogPage() {
   const [hasAttempted, setHasAttempted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
-  const [successData, setSuccessData] = useState<Submission | null>(null)
+
+  // Capture the total miles before this submission so the map can highlight
+  // the contributed segment. Fetched once on mount; failures are silent
+  // (the map will simply load without the contribution highlight).
+  const beforeMilesRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    getStats()
+      .then((stats) => {
+        beforeMilesRef.current = stats.total_miles
+      })
+      .catch(() => {
+        // Non-critical — contribution highlight will be skipped if this fails
+      })
+  }, [])
 
   // Re-validate in real time after first submit attempt
   useEffect(() => {
@@ -216,26 +154,23 @@ export default function LogPage() {
           site: site || null,
         },
       })
-      setSuccessData(result.submission)
+
+      const contributedMiles = result.submission.converted_miles
+      const beforeMiles = beforeMilesRef.current ?? null
+      const afterMiles = beforeMiles !== null ? beforeMiles + contributedMiles : null
+
+      navigate("/", {
+        state:
+          beforeMiles !== null && afterMiles !== null
+            ? { beforeMiles, afterMiles }
+            : undefined,
+      })
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong. Try again."
       setApiError(message)
-    } finally {
       setLoading(false)
     }
-  }
-
-  function handleLogMore() {
-    setName("")
-    setDate(todayISO())
-    setInputType("miles")
-    setInputValue("")
-    setSite("")
-    setErrors(EMPTY_ERRORS)
-    setHasAttempted(false)
-    setApiError(null)
-    setSuccessData(null)
   }
 
   const stepsConvertedMiles =
@@ -254,10 +189,6 @@ export default function LogPage() {
         @keyframes fadeIn {
           from { opacity: 0; }
           to   { opacity: 1; }
-        }
-        @keyframes popIn {
-          from { transform: scale(0.6); opacity: 0; }
-          to   { transform: scale(1);   opacity: 1; }
         }
         @keyframes slideDown {
           from { transform: translateY(-8px); opacity: 0; }
@@ -283,22 +214,13 @@ export default function LogPage() {
           <p className="mt-1 text-sm text-[#8C7B6B]">Every mile counts.</p>
         </div>
 
-        {/* Success state */}
-        {successData !== null ? (
-          <div
-            key="success"
-            style={{ animation: "fadeIn 200ms ease-in forwards" }}
-          >
-            <SuccessState submission={successData} onLogMore={handleLogMore} />
-          </div>
-        ) : (
-          /* Form */
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            style={{ animation: "fadeIn 150ms ease-in forwards" }}
-          >
-            <div className="flex flex-col gap-6">
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          style={{ animation: "fadeIn 150ms ease-in forwards" }}
+        >
+          <div className="flex flex-col gap-6">
               {/* Name */}
               <div className="flex flex-col gap-1.5">
                 <label
@@ -475,7 +397,7 @@ export default function LogPage() {
                   ))}
                 </select>
                 <p className="text-xs text-[#8C7B6B]">
-                  Your miles will count toward the campus leaderboard.
+                  Your miles will appear on the Campus Trail.
                 </p>
               </div>
 
@@ -528,9 +450,8 @@ export default function LogPage() {
               >
                 {loading ? "\u00b7\u00b7\u00b7" : submitLabel}
               </button>
-            </div>
-          </form>
-        )}
+          </div>
+        </form>
       </div>
     </>
   )

@@ -4,7 +4,7 @@ import Layout from "./components/Layout/Layout"
 import AdminLoginPage from "./pages/AdminLoginPage/AdminLoginPage"
 import AdminPage from "./pages/AdminPage/AdminPage"
 import ChangePasswordPage from "./pages/ChangePasswordPage/ChangePasswordPage"
-import LeaderboardPage from "./pages/LeaderboardPage/LeaderboardPage"
+import CampusTrailPage from "./pages/CampusTrailPage/CampusTrailPage"
 import NewMilestonePage from "./pages/NewMilestonePage/NewMilestonePage"
 import LogPage from "./pages/LogPage/LogPage"
 import MapPage from "./pages/MapPage/MapPage"
@@ -19,7 +19,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<MapPage />} />
           <Route path="log" element={<LogPage />} />
-          <Route path="leaderboard" element={<LeaderboardPage />} />
+          <Route path="campus-trail" element={<CampusTrailPage />} />
         </Route>
 
         {/* Admin login — no nav shell, intentionally isolated */}

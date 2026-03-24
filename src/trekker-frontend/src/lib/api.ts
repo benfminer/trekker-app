@@ -3,11 +3,11 @@ import type {
   AdminLoginResponse,
   AdminSubmissionsParams,
   AdminSubmissionsResponse,
+  CampusTrailResponse,
   ChangePasswordPayload,
   CreateAdminUserPayload,
   CreateSubmissionPayload,
   CreateSubmissionResponse,
-  LeaderboardResponse,
   CreateMilestonePayload,
   CreateMilestoneResponse,
   ResetAdminUserPasswordPayload,
@@ -93,11 +93,11 @@ export function getStats(): Promise<Stats> {
 }
 
 /**
- * GET /leaderboard
- * Site-based mileage totals for all four TRACE campuses.
+ * GET /campus_trail
+ * Per-campus mileage totals with narrative geographic milestone for each site.
  */
-export function getLeaderboard(): Promise<LeaderboardResponse> {
-  return request<LeaderboardResponse>("/leaderboard")
+export function getCampusTrail(): Promise<CampusTrailResponse> {
+  return request<CampusTrailResponse>("/campus_trail")
 }
 
 // ---------------------------------------------------------------------------

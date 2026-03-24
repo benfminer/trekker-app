@@ -1,9 +1,18 @@
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useEffect, useRef, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { getStats } from "../../lib/api"
 import type { NextMilestone, Stats } from "../../lib/types"
+
+// ---------------------------------------------------------------------------
+// Contribution navigation state shape
+// ---------------------------------------------------------------------------
+
+export interface ContributionState {
+  beforeMiles: number
+  afterMiles: number
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -144,6 +153,75 @@ function splitRoute(fraction: number): {
   }
 
   return { traveled, remaining }
+}
+
+/**
+ * Given beforeMiles and afterMiles, return the coordinates of just the
+ * contributed segment as a GeoJSON LineString coordinate array.
+ *
+ * Uses the same Euclidean path units as interpolatePosition/splitRoute —
+ * no turf required; the route is a fixed coordinate array, not geographic.
+ *
+ * Enforces a minimum segment length to prevent absurdly tight fitBounds
+ * on tiny contributions.
+ */
+function getContributionCoords(
+  beforeMiles: number,
+  afterMiles: number
+): [number, number][] {
+  const clampedBefore = Math.max(0, beforeMiles)
+  const clampedAfter = Math.min(EARTH_CIRCUMFERENCE_MILES, Math.max(afterMiles, clampedBefore))
+
+  const fracBefore = clampedBefore / EARTH_CIRCUMFERENCE_MILES
+  const fracAfter = clampedAfter / EARTH_CIRCUMFERENCE_MILES
+
+  const startPoint = interpolatePosition(fracBefore)
+  const endPoint = interpolatePosition(fracAfter)
+
+  // Walk the route coords between the two fractions
+  const targetBefore = fracBefore * TOTAL_PATH_LENGTH
+  const targetAfter = fracAfter * TOTAL_PATH_LENGTH
+
+  const coords: [number, number][] = [startPoint]
+  let accumulated = 0
+
+  for (let i = 0; i < SEGMENT_LENGTHS.length; i++) {
+    const segLen = SEGMENT_LENGTHS[i]
+    const segStart = accumulated
+    const segEnd = accumulated + segLen
+
+    // Include full waypoints that fall strictly between the two fractions
+    if (segEnd > targetBefore && segStart < targetAfter) {
+      const nextPoint = ROUTE_COORDS[i + 1]
+      if (segEnd <= targetAfter) {
+        coords.push(nextPoint)
+      }
+    }
+
+    accumulated += segLen
+    if (accumulated >= targetAfter) break
+  }
+
+  coords.push(endPoint)
+  return coords
+}
+
+/**
+ * Compute a bounding box [[minLng, minLat], [maxLng, maxLat]] from a
+ * coordinate array, with generous padding built in at the fitBounds call site.
+ */
+function coordsBounds(
+  coords: [number, number][]
+): [[number, number], [number, number]] {
+  let minLng = Infinity, maxLng = -Infinity
+  let minLat = Infinity, maxLat = -Infinity
+  for (const [lng, lat] of coords) {
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+  return [[minLng, minLat], [maxLng, maxLat]]
 }
 
 // ---------------------------------------------------------------------------
@@ -465,6 +543,90 @@ function RotatingQuote() {
 }
 
 // ---------------------------------------------------------------------------
+// Contribution overlay card
+// ---------------------------------------------------------------------------
+
+interface ContributionOverlayProps {
+  beforeMiles: number
+  afterMiles: number
+  onDismiss: () => void
+}
+
+function ContributionOverlay({
+  beforeMiles,
+  afterMiles,
+  onDismiss,
+}: ContributionOverlayProps) {
+  const contributed = afterMiles - beforeMiles
+  const milesText = contributed < 1
+    ? `${(contributed * 5280).toFixed(0)} feet` // edge case: sub-mile
+    : contributed === Math.floor(contributed)
+      ? `${Math.round(contributed).toLocaleString()} miles`
+      : `${contributed.toFixed(1)} miles`
+
+  return (
+    <>
+      <style>{`
+        @keyframes contributionSlideUp {
+          from { transform: translateY(16px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .contribution-card { animation-duration: 0ms !important; }
+        }
+      `}</style>
+
+      <div
+        className="contribution-card pointer-events-auto absolute bottom-6 left-1/2 z-20 w-[calc(100%-32px)] max-w-[420px] -translate-x-1/2 rounded-lg border border-[#2a2a2a] bg-[#111111] px-6 py-5 shadow-2xl"
+        style={{
+          animation: "contributionSlideUp 260ms cubic-bezier(0.22,1,0.36,1) forwards",
+        }}
+        role="status"
+        aria-live="polite"
+        data-testid="contribution-overlay"
+      >
+        {/* Label */}
+        <p
+          className="mb-2 text-[11px] uppercase tracking-[0.12em] text-[#f97316]"
+          style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700 }}
+        >
+          Your contribution
+        </p>
+
+        {/* Main message */}
+        <p
+          className="mb-1 text-[22px] leading-tight text-white sm:text-[26px]"
+          style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700 }}
+        >
+          You just moved the group{" "}
+          <span className="text-[#f97316]">{milesText}</span>!
+        </p>
+
+        {/* Before / after markers */}
+        <p className="mt-2 text-[13px] text-[#6b7280]">
+          {formatMiles(beforeMiles)} mi{" "}
+          <span className="mx-1 text-[#f97316]">&#8594;</span>{" "}
+          {formatMiles(Math.round(afterMiles))} mi into the journey
+        </p>
+
+        {/* Dismiss */}
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss contribution highlight"
+          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full text-[#4b5563] transition-colors duration-100 hover:bg-[#1f1f1f] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97316]"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+      </div>
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Missing token fallback
 // ---------------------------------------------------------------------------
 
@@ -495,15 +657,32 @@ function TokenMissingFallback() {
 export default function MapPage() {
   // Read at render time so tests can stub import.meta.env before rendering.
   const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
+  const location = useLocation()
 
   if (!token) {
     return <TokenMissingFallback />
   }
 
-  return <MapPageInner token={token} />
+  // Pull contribution state from React Router navigation state (set by LogPage
+  // after a successful submission). Validate the shape before trusting it.
+  const rawState = location.state as Record<string, unknown> | null
+  const contribution: ContributionState | null =
+    rawState !== null &&
+    typeof rawState.beforeMiles === "number" &&
+    typeof rawState.afterMiles === "number" &&
+    rawState.afterMiles > rawState.beforeMiles
+      ? { beforeMiles: rawState.beforeMiles, afterMiles: rawState.afterMiles }
+      : null
+
+  return <MapPageInner token={token} contribution={contribution} />
 }
 
-function MapPageInner({ token }: { token: string }) {
+interface MapPageInnerProps {
+  token: string
+  contribution: ContributionState | null
+}
+
+function MapPageInner({ token, contribution }: MapPageInnerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markerRef = useRef<mapboxgl.Marker | null>(null)
@@ -513,6 +692,12 @@ function MapPageInner({ token }: { token: string }) {
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
   const [mapReady, setMapReady] = useState(false)
+
+  // Contribution highlight — tracks whether the overlay is visible.
+  // Dismissed by the user; also cleared on unmount (navigate away).
+  const [contributionVisible, setContributionVisible] = useState(
+    contribution !== null
+  )
 
   // Milestone celebration queue
   const [celebrationQueue, setCelebrationQueue] = useState<NextMilestone[]>([])
@@ -582,7 +767,14 @@ function MapPageInner({ token }: { token: string }) {
     )
     map.addControl(new mapboxgl.NavigationControl(), "bottom-right")
 
+    // Resize whenever the container dimensions change (handles layout shifts)
+    const resizeObserver = new ResizeObserver(() => map.resize())
+    resizeObserver.observe(mapContainerRef.current)
+
     map.on("load", () => {
+      // Ensure canvas fills the container after layout has settled
+      map.resize()
+
       // Traveled route layer
       map.addSource("route-traveled", {
         type: "geojson",
@@ -645,12 +837,50 @@ function MapPageInner({ token }: { token: string }) {
         "route-traveled-glow" // insert below the glow + traveled layers
       )
 
+      // Contribution segment layer — highlighted in white with an orange glow.
+      // Initially empty; populated in the contribution effect below when
+      // navigation state carries beforeMiles/afterMiles.
+      map.addSource("contribution-segment", {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: { type: "LineString", coordinates: [] },
+        },
+      })
+      // Glow ring — wider, soft orange
+      map.addLayer({
+        id: "contribution-segment-glow",
+        type: "line",
+        source: "contribution-segment",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#FF6B00",
+          "line-width": 18,
+          "line-opacity": 0.3,
+          "line-blur": 8,
+        },
+      })
+      // Core line — bright white on top of the orange traveled line
+      map.addLayer({
+        id: "contribution-segment",
+        type: "line",
+        source: "contribution-segment",
+        layout: { "line-join": "round", "line-cap": "round" },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 6,
+          "line-opacity": 1,
+        },
+      })
+
       setMapReady(true)
     })
 
     mapRef.current = map
 
     return () => {
+      resizeObserver.disconnect()
       map.remove()
       mapRef.current = null
     }
@@ -764,8 +994,12 @@ function MapPageInner({ token }: { token: string }) {
       markerRef.current.setLngLat(currentPos)
     }
 
-    // Fly to current position on first data load
-    if (!prevStatsRef.current || prevStatsRef.current.total_miles === 0) {
+    // Fly to current position on first data load — but only when there is no
+    // contribution state (the contribution effect handles camera in that case).
+    if (
+      (!prevStatsRef.current || prevStatsRef.current.total_miles === 0) &&
+      contribution === null
+    ) {
       map.flyTo({
         center: currentPos,
         zoom: 4,
@@ -773,7 +1007,64 @@ function MapPageInner({ token }: { token: string }) {
         essential: true,
       })
     }
-  }, [stats, mapReady])
+  }, [stats, mapReady, contribution])
+
+  // ---------------------------------------------------------------------------
+  // Contribution segment highlight + fitBounds
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady || !contribution) return
+
+    const { beforeMiles, afterMiles } = contribution
+    const coords = getContributionCoords(beforeMiles, afterMiles)
+
+    // Populate the contribution segment source
+    const segmentSource = map.getSource("contribution-segment") as
+      | mapboxgl.GeoJSONSource
+      | undefined
+    if (segmentSource) {
+      segmentSource.setData({
+        type: "Feature",
+        properties: {},
+        geometry: { type: "LineString", coordinates: coords },
+      })
+    }
+
+    // Animate camera to the bounding box of the segment
+    const [[minLng, minLat], [maxLng, maxLat]] = coordsBounds(coords)
+    map.fitBounds(
+      [[minLng, minLat], [maxLng, maxLat]],
+      {
+        padding: { top: 120, bottom: 200, left: 80, right: 80 },
+        duration: 1400,
+        essential: true,
+      }
+    )
+  }, [mapReady, contribution])
+
+  // Clear the contribution segment and fly back to current position when dismissed
+  useEffect(() => {
+    if (contributionVisible) return
+    const map = mapRef.current
+    if (!map) return
+
+    // Clear the highlight using an empty FeatureCollection (valid GeoJSON)
+    const segmentSource = map.getSource("contribution-segment") as
+      | mapboxgl.GeoJSONSource
+      | undefined
+    if (segmentSource) {
+      segmentSource.setData({ type: "FeatureCollection", features: [] })
+    }
+
+    // Fly back to the current collective position
+    if (stats) {
+      const fraction = stats.current_position / EARTH_CIRCUMFERENCE_MILES
+      const [lng, lat] = interpolatePosition(fraction)
+      map.flyTo({ center: [lng, lat], zoom: 4, duration: 1200 })
+    }
+  }, [contributionVisible, stats])
 
   // ---------------------------------------------------------------------------
   // Milestone celebration queue management
@@ -820,12 +1111,25 @@ function MapPageInner({ token }: { token: string }) {
         {/* Map container                                                      */}
         {/* ----------------------------------------------------------------- */}
         <div
-          ref={mapContainerRef}
-          className="w-full"
+          className="relative w-full"
           style={{ minHeight: "55vh", height: "clamp(55vh, 60vh, 65vh)" }}
-          aria-label="Live circumnavigation route map"
-          role="img"
-        />
+        >
+          <div
+            ref={mapContainerRef}
+            className="w-full h-full"
+            aria-label="Live circumnavigation route map"
+            role="img"
+          />
+
+          {/* Contribution overlay — anchored inside the map container */}
+          {contribution !== null && contributionVisible && (
+            <ContributionOverlay
+              beforeMiles={contribution.beforeMiles}
+              afterMiles={contribution.afterMiles}
+              onDismiss={() => setContributionVisible(false)}
+            />
+          )}
+        </div>
 
         {/* ----------------------------------------------------------------- */}
         {/* Stats panel                                                        */}

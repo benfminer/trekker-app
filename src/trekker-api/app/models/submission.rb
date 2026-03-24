@@ -69,9 +69,11 @@ class Submission < ApplicationRecord
   private
 
   # Rejects absurdly large single-entry submissions that would distort the map
-  # or leaderboard. Max: 500 miles or 1,250,000 steps per entry.
+  # or campus trail. Max: 500 miles or 1,250,000 steps per entry.
+  # Imported records (historical CSV data) are exempt — they may exceed these limits.
   def input_value_within_bounds
     return unless input_value.present? && input_type.present?
+    return if imported?
 
     max = input_type == "steps" ? 1_250_000 : 500
     if input_value > max

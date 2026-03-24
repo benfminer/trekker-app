@@ -13,6 +13,9 @@ import type { Stats } from "../../lib/types"
 // constructable with `new`.
 // ---------------------------------------------------------------------------
 
+const mockFitBounds = vi.fn()
+const mockSetData = vi.fn()
+
 vi.mock("mapbox-gl", () => {
   const MockMap = vi.fn(function () {
     return {
@@ -24,9 +27,11 @@ vi.mock("mapbox-gl", () => {
       addSource: vi.fn(),
       addLayer: vi.fn(),
       getSource: vi.fn(function () {
-        return { setData: vi.fn() }
+        return { setData: mockSetData }
       }),
       flyTo: vi.fn(),
+      fitBounds: mockFitBounds,
+      resize: vi.fn(),
       remove: vi.fn(),
     }
   })
@@ -81,12 +86,28 @@ function makeStats(overrides: Partial<Stats> = {}): Stats {
 }
 
 // ---------------------------------------------------------------------------
-// Render helper
+// Render helpers
 // ---------------------------------------------------------------------------
 
 function renderMapPage() {
   return render(
     <MemoryRouter initialEntries={["/"]}>
+      <Routes>
+        <Route path="/" element={<MapPage />} />
+        <Route path="/log" element={<div>Log page</div>} />
+      </Routes>
+    </MemoryRouter>
+  )
+}
+
+interface ContributionState {
+  beforeMiles: number
+  afterMiles: number
+}
+
+function renderMapPageWithContribution(state: ContributionState) {
+  return render(
+    <MemoryRouter initialEntries={[{ pathname: "/", state }]}>
       <Routes>
         <Route path="/" element={<MapPage />} />
         <Route path="/log" element={<div>Log page</div>} />
@@ -103,6 +124,8 @@ describe("MapPage", () => {
   beforeEach(() => {
     sessionStorage.clear()
     vi.stubEnv("VITE_MAPBOX_TOKEN", "pk.test_token")
+    mockFitBounds.mockClear()
+    mockSetData.mockClear()
   })
 
   afterEach(() => {
@@ -500,6 +523,118 @@ describe("MapPage", () => {
       vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderMapPage()
       expect(document.querySelector("[aria-live='polite']")).toBeInTheDocument()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // Contribution highlight
+  // -------------------------------------------------------------------------
+
+  describe("contribution highlight", () => {
+    it("shows the contribution overlay when navigation state has beforeMiles and afterMiles", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 7000, afterMiles: 7050 })
+
+      await waitFor(() => {
+        expect(screen.getByTestId("contribution-overlay")).toBeInTheDocument()
+      })
+    })
+
+    it("shows the contributed miles in the overlay", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 7000, afterMiles: 7025 })
+
+      await waitFor(() => {
+        expect(screen.getByTestId("contribution-overlay")).toBeInTheDocument()
+      })
+
+      // Overlay should mention the 25 miles contributed
+      expect(screen.getByText(/25 miles/i)).toBeInTheDocument()
+    })
+
+    it("calls fitBounds when contribution state is present and map is ready", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 5000, afterMiles: 5100 })
+
+      await waitFor(() => {
+        expect(mockFitBounds).toHaveBeenCalledOnce()
+      })
+
+      // Should be called with a bounding box (two coordinate pairs)
+      const [bounds, options] = mockFitBounds.mock.calls[0]
+      expect(bounds).toHaveLength(2)
+      expect(options).toMatchObject({ duration: 1400, essential: true })
+    })
+
+    it("does not show the overlay or call fitBounds when there is no navigation state", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPage()
+
+      await waitFor(() => {
+        expect(screen.getByText("7,135")).toBeInTheDocument()
+      })
+
+      expect(screen.queryByTestId("contribution-overlay")).not.toBeInTheDocument()
+      expect(mockFitBounds).not.toHaveBeenCalled()
+    })
+
+    it("does not show the overlay when afterMiles equals beforeMiles (no contribution)", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 7000, afterMiles: 7000 })
+
+      await waitFor(() => {
+        expect(screen.getByText("7,135")).toBeInTheDocument()
+      })
+
+      expect(screen.queryByTestId("contribution-overlay")).not.toBeInTheDocument()
+    })
+
+    it("dismisses the overlay when the close button is clicked", async () => {
+      const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 7000, afterMiles: 7050 })
+
+      await waitFor(() => {
+        expect(screen.getByTestId("contribution-overlay")).toBeInTheDocument()
+      })
+
+      await user.click(
+        screen.getByRole("button", { name: /dismiss contribution highlight/i })
+      )
+
+      await waitFor(() => {
+        expect(screen.queryByTestId("contribution-overlay")).not.toBeInTheDocument()
+      })
+    })
+
+    it("handles beforeMiles = 0 (first contribution from San Diego) without error", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      renderMapPageWithContribution({ beforeMiles: 0, afterMiles: 10 })
+
+      await waitFor(() => {
+        expect(screen.getByTestId("contribution-overlay")).toBeInTheDocument()
+      })
+
+      expect(mockFitBounds).toHaveBeenCalledOnce()
+    })
+
+    it("enforces a minimum bounding box size for tiny contributions", async () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+
+      // 1-mile contribution is below the 5-mile minimum — fitBounds should
+      // still be called (segment gets padded to 5 miles minimum)
+      renderMapPageWithContribution({ beforeMiles: 7000, afterMiles: 7001 })
+
+      await waitFor(() => {
+        expect(mockFitBounds).toHaveBeenCalledOnce()
+      })
     })
   })
 })

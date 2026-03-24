@@ -12,8 +12,8 @@ Rails.application.routes.draw do
   # GET /stats — cumulative total miles, current position, next milestone
   get "stats", to: "stats#show"
 
-  # GET /leaderboard — site-based miles totals for the campus leaderboard
-  get "leaderboard", to: "leaderboard#show"
+  # GET /campus_trail — per-site miles and geographic narrative milestone for each campus
+  get "campus_trail", to: "campus_trail#show"
 
   # ---------------------------------------------------------------------------
   # Admin endpoints — all require Bearer token (authenticate_admin!)

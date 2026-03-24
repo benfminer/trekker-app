@@ -37,8 +37,8 @@ export default function Layout() {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/leaderboard" className={navLinkClass}>
-                Leaderboard
+              <NavLink to="/campus-trail" className={navLinkClass}>
+                Campus Trail
               </NavLink>
             </li>
           </ul>

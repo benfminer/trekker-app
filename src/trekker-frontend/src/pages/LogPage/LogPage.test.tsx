@@ -1,21 +1,41 @@
 import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MemoryRouter, Route, Routes } from "react-router-dom"
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import LogPage from "./LogPage"
 import * as api from "../../lib/api"
-import type { CreateSubmissionResponse } from "../../lib/types"
+import type { CreateSubmissionResponse, Stats } from "../../lib/types"
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Captures the location (including state) from inside a route so tests can
+ * assert what the app navigated to after a successful submission.
+ */
+let capturedLocation: ReturnType<typeof useLocation> | null = null
+
+function LocationCapture() {
+  capturedLocation = useLocation()
+  return null
+}
+
 function renderLogPage() {
+  capturedLocation = null
   return render(
     <MemoryRouter initialEntries={["/log"]}>
       <Routes>
         <Route path="/log" element={<LogPage />} />
-        <Route path="/" element={<div>Map page</div>} />
+        <Route
+          path="/"
+          element={
+            <>
+              <div>Map page</div>
+              <LocationCapture />
+            </>
+          }
+        />
       </Routes>
     </MemoryRouter>
   )
@@ -23,6 +43,15 @@ function renderLogPage() {
 
 function todayISO(): string {
   return new Date().toISOString().split("T")[0]
+}
+
+function makeStats(overrides: Partial<Stats> = {}): Stats {
+  return {
+    total_miles: 7135,
+    current_position: 7135,
+    next_milestone: null,
+    ...overrides,
+  }
 }
 
 function makeSubmissionResponse(
@@ -61,11 +90,13 @@ describe("LogPage", () => {
 
   describe("initial render", () => {
     it("renders the page heading", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
       expect(screen.getByRole("heading", { name: /log your activity/i })).toBeInTheDocument()
     })
 
     it("renders name, date, and value inputs", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
       expect(screen.getByLabelText(/your name or class name/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/^date/i)).toBeInTheDocument()
@@ -73,12 +104,14 @@ describe("LogPage", () => {
     })
 
     it("defaults the date field to today", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
       const dateInput = screen.getByLabelText<HTMLInputElement>(/^date/i)
       expect(dateInput.value).toBe(todayISO())
     })
 
     it("renders the Miles/Steps toggle with Miles active by default", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
       const milesBtn = screen.getByRole("radio", { name: /miles/i })
       const stepsBtn = screen.getByRole("radio", { name: /steps/i })
@@ -87,7 +120,28 @@ describe("LogPage", () => {
     })
 
     it("renders the submit button", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
+      expect(screen.getByRole("button", { name: /log your miles/i })).toBeInTheDocument()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // Stats prefetch on mount
+  // -------------------------------------------------------------------------
+
+  describe("stats prefetch", () => {
+    it("calls getStats on mount to capture the before-miles baseline", async () => {
+      const spy = vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+      renderLogPage()
+      await waitFor(() => expect(spy).toHaveBeenCalledOnce())
+    })
+
+    it("does not block the form if getStats fails", async () => {
+      vi.spyOn(api, "getStats").mockRejectedValue(new Error("Network error"))
+      renderLogPage()
+      // Form should still render
+      expect(screen.getByRole("heading", { name: /log your activity/i })).toBeInTheDocument()
       expect(screen.getByRole("button", { name: /log your miles/i })).toBeInTheDocument()
     })
   })
@@ -97,6 +151,10 @@ describe("LogPage", () => {
   // -------------------------------------------------------------------------
 
   describe("Miles/Steps toggle", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+    })
+
     it("switches to Steps when the Steps button is clicked", async () => {
       const user = userEvent.setup()
       renderLogPage()
@@ -141,6 +199,10 @@ describe("LogPage", () => {
   // -------------------------------------------------------------------------
 
   describe("step conversion preview", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+    })
+
     it("shows the steps hint when Steps mode is active", async () => {
       const user = userEvent.setup()
       renderLogPage()
@@ -178,6 +240,10 @@ describe("LogPage", () => {
   // -------------------------------------------------------------------------
 
   describe("field validation", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+    })
+
     it("shows all required field errors on empty submit", async () => {
       const user = userEvent.setup()
       renderLogPage()
@@ -229,6 +295,7 @@ describe("LogPage", () => {
     })
 
     it("does not show errors before a submit attempt", () => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       renderLogPage()
       // No errors visible on first render
       expect(screen.queryByRole("alert")).not.toBeInTheDocument()
@@ -252,14 +319,15 @@ describe("LogPage", () => {
   })
 
   // -------------------------------------------------------------------------
-  // Successful submission
+  // Successful submission — navigation with contribution state
   // -------------------------------------------------------------------------
 
   describe("successful submission", () => {
-    it("shows the success state after a valid miles submission", async () => {
+    it("redirects to / after a valid submission", async () => {
       const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats({ total_miles: 7135 }))
       vi.spyOn(api, "createSubmission").mockResolvedValue(
-        makeSubmissionResponse({ input_type: "miles", input_value: 3.2, converted_miles: 3.2 })
+        makeSubmissionResponse({ converted_miles: 3.2 })
       )
       renderLogPage()
 
@@ -268,50 +336,57 @@ describe("LogPage", () => {
       await user.click(screen.getByRole("button", { name: /log your miles/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/you just added/i)).toBeInTheDocument()
+        expect(screen.getByText("Map page")).toBeInTheDocument()
       })
-      expect(screen.getByText(/3\.2 miles/)).toBeInTheDocument()
-      expect(screen.getByText(/the trace suns are on the move/i)).toBeInTheDocument()
     })
 
-    it("shows converted miles and step count after a steps submission", async () => {
+    it("passes beforeMiles and afterMiles in navigation state when stats loaded successfully", async () => {
       const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats({ total_miles: 7135 }))
       vi.spyOn(api, "createSubmission").mockResolvedValue(
-        makeSubmissionResponse({
-          input_type: "steps",
-          input_value: 6000,
-          converted_miles: 2.4,
-        })
+        makeSubmissionResponse({ converted_miles: 10 })
       )
       renderLogPage()
 
-      await user.click(screen.getByRole("radio", { name: /steps/i }))
-      await user.type(screen.getByLabelText(/your name or class name/i), "8th Grade")
-      await user.type(screen.getByLabelText(/how many steps/i), "6000")
-      await user.click(screen.getByRole("button", { name: /log your steps/i }))
+      // Wait for stats to load
+      await waitFor(() => expect(api.getStats).toHaveBeenCalledOnce())
+
+      await user.type(screen.getByLabelText(/your name or class name/i), "Ms. Lee")
+      await user.type(screen.getByLabelText(/how many miles/i), "10")
+      await user.click(screen.getByRole("button", { name: /log your miles/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/you just added/i)).toBeInTheDocument()
+        expect(screen.getByText("Map page")).toBeInTheDocument()
       })
-      expect(screen.getByText(/2\.4 miles/)).toBeInTheDocument()
-      expect(screen.getByText(/6,000 steps/)).toBeInTheDocument()
+
+      expect(capturedLocation?.state).toEqual({ beforeMiles: 7135, afterMiles: 7145 })
     })
 
-    it("shows a 'See where we are' link to the map page", async () => {
+    it("navigates without contribution state when getStats failed", async () => {
       const user = userEvent.setup()
-      vi.spyOn(api, "createSubmission").mockResolvedValue(makeSubmissionResponse())
+      vi.spyOn(api, "getStats").mockRejectedValue(new Error("Network error"))
+      vi.spyOn(api, "createSubmission").mockResolvedValue(
+        makeSubmissionResponse({ converted_miles: 5 })
+      )
       renderLogPage()
 
       await user.type(screen.getByLabelText(/your name or class name/i), "Ana")
-      await user.type(screen.getByLabelText(/how many miles/i), "2")
+      await user.type(screen.getByLabelText(/how many miles/i), "5")
       await user.click(screen.getByRole("button", { name: /log your miles/i }))
 
-      const link = await screen.findByRole("link", { name: /see where we are/i })
-      expect(link).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText("Map page")).toBeInTheDocument()
+      })
+
+      // Navigation state should be null/absent — no before miles were captured.
+      // React Router sets location.state to null when navigate() is called
+      // with state: undefined.
+      expect(capturedLocation?.state ?? null).toBeNull()
     })
 
     it("calls createSubmission with the correct payload", async () => {
       const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       const spy = vi.spyOn(api, "createSubmission").mockResolvedValue(makeSubmissionResponse())
       renderLogPage()
 
@@ -330,34 +405,27 @@ describe("LogPage", () => {
         },
       })
     })
-  })
 
-  // -------------------------------------------------------------------------
-  // "Log more activity" reset
-  // -------------------------------------------------------------------------
-
-  describe("log more activity", () => {
-    beforeEach(async () => {
-      vi.spyOn(api, "createSubmission").mockResolvedValue(makeSubmissionResponse())
-    })
-
-    it("resets the form in place when 'Log more activity' is clicked", async () => {
+    it("correctly calculates afterMiles as beforeMiles + converted_miles", async () => {
       const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats({ total_miles: 1000 }))
+      vi.spyOn(api, "createSubmission").mockResolvedValue(
+        makeSubmissionResponse({ input_type: "steps", input_value: 5000, converted_miles: 2 })
+      )
       renderLogPage()
 
-      await user.type(screen.getByLabelText(/your name or class name/i), "Tyler")
-      await user.type(screen.getByLabelText(/how many miles/i), "4")
-      await user.click(screen.getByRole("button", { name: /log your miles/i }))
+      await waitFor(() => expect(api.getStats).toHaveBeenCalledOnce())
 
-      await waitFor(() => screen.getByText(/you just added/i))
+      await user.click(screen.getByRole("radio", { name: /steps/i }))
+      await user.type(screen.getByLabelText(/your name or class name/i), "8th Grade")
+      await user.type(screen.getByLabelText(/how many steps/i), "5000")
+      await user.click(screen.getByRole("button", { name: /log your steps/i }))
 
-      await user.click(screen.getByRole("button", { name: /log more activity/i }))
+      await waitFor(() => {
+        expect(screen.getByText("Map page")).toBeInTheDocument()
+      })
 
-      // Form should be back, fields cleared
-      expect(screen.getByLabelText(/your name or class name/i)).toHaveValue("")
-      expect(screen.getByLabelText<HTMLInputElement>(/^date/i).value).toBe(todayISO())
-      expect(screen.getByRole("radio", { name: /miles/i })).toHaveAttribute("aria-checked", "true")
-      expect(screen.getByLabelText(/how many miles/i)).toHaveValue(null)
+      expect(capturedLocation?.state).toEqual({ beforeMiles: 1000, afterMiles: 1002 })
     })
   })
 
@@ -366,6 +434,10 @@ describe("LogPage", () => {
   // -------------------------------------------------------------------------
 
   describe("API error state", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+    })
+
     it("shows the API error banner when createSubmission throws", async () => {
       const user = userEvent.setup()
       vi.spyOn(api, "createSubmission").mockRejectedValue(
@@ -381,7 +453,7 @@ describe("LogPage", () => {
       expect(banner).toHaveTextContent(/something went wrong/i)
     })
 
-    it("keeps the form visible (does not show success state) after an API error", async () => {
+    it("keeps the form visible (does not navigate) after an API error", async () => {
       const user = userEvent.setup()
       vi.spyOn(api, "createSubmission").mockRejectedValue(new Error("Network error"))
       renderLogPage()
@@ -391,8 +463,7 @@ describe("LogPage", () => {
       await user.click(screen.getByRole("button", { name: /log your miles/i }))
 
       await screen.findByRole("alert")
-      expect(screen.queryByText(/you just added/i)).not.toBeInTheDocument()
-      // Form inputs still present
+      // Form inputs still present — we didn't navigate away
       expect(screen.getByLabelText(/your name or class name/i)).toBeInTheDocument()
     })
 
@@ -428,14 +499,14 @@ describe("LogPage", () => {
 
       await screen.findByRole("alert")
 
-      // Submit again — error should clear
+      // Submit again — error should clear and we navigate
       await user.click(screen.getByRole("button", { name: /log your miles/i }))
 
       await waitFor(() => {
         expect(screen.queryByRole("alert")).not.toBeInTheDocument()
       })
       await waitFor(() => {
-        expect(screen.getByText(/you just added/i)).toBeInTheDocument()
+        expect(screen.getByText("Map page")).toBeInTheDocument()
       })
     })
 
@@ -460,6 +531,7 @@ describe("LogPage", () => {
   describe("loading state", () => {
     it("disables the submit button while the request is in flight", async () => {
       const user = userEvent.setup()
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
       // Never resolves — stays in loading state for the duration of this test
       vi.spyOn(api, "createSubmission").mockReturnValue(new Promise(() => {}))
       renderLogPage()
@@ -478,6 +550,10 @@ describe("LogPage", () => {
   // -------------------------------------------------------------------------
 
   describe("site dropdown", () => {
+    beforeEach(() => {
+      vi.spyOn(api, "getStats").mockResolvedValue(makeStats())
+    })
+
     it("renders a campus select with a placeholder option", () => {
       renderLogPage()
       const select = screen.getByLabelText(/your campus/i)
