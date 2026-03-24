@@ -9,6 +9,65 @@ import type { CreateSubmissionResponse, InputType, SiteSlug } from "../../lib/ty
 
 const STEPS_PER_MILE = 2500
 
+const QUOTES = [
+  {
+    text: "If you want to go fast, go alone. If you want to go far, go together.",
+    attribution: "African Proverb",
+  },
+  {
+    text: "None of us is as smart as all of us.",
+    attribution: "Ken Blanchard",
+  },
+  {
+    text: "Individually, we are one drop. Together, we are an ocean.",
+    attribution: "Ryunosuke Satoro",
+  },
+  {
+    text: "The strength of the team is each individual member. The strength of each member is the team.",
+    attribution: "Phil Jackson",
+  },
+  {
+    text: "Alone we can do so little; together we can do so much.",
+    attribution: "Helen Keller",
+  },
+] as const
+
+function RotatingQuote() {
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % QUOTES.length)
+        setVisible(true)
+      }, 500)
+    }, 8000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const quote = QUOTES[index]
+
+  return (
+    <div
+      className="mb-6 border-b border-[#E8DDD0] pb-5 text-center"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <p
+        className="mx-auto max-w-sm text-[13px] italic leading-relaxed text-[#8C7B6B] transition-opacity duration-500"
+        style={{ opacity: visible ? 1 : 0 }}
+      >
+        &ldquo;{quote.text}&rdquo;
+        <span className="ml-2 not-italic text-[#C4B5A8]">
+          — {quote.attribution}
+        </span>
+      </p>
+    </div>
+  )
+}
+
 const SITE_OPTIONS: { value: SiteSlug; label: string }[] = [
   { value: "trace_north", label: "Trace North" },
   { value: "trace_south", label: "Trace South" },
@@ -209,6 +268,9 @@ export default function LogPage() {
           </h1>
           <p className="mt-1 text-sm text-[#8C7B6B]">Every mile counts.</p>
         </div>
+
+        {/* Rotating quote */}
+        <RotatingQuote />
 
         {/* Form */}
         <form
