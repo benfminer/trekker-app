@@ -4,6 +4,13 @@
 
 BEGIN;
 
+-- Admin users (bminer, wamo)
+TRUNCATE admin_users RESTART IDENTITY CASCADE;
+
+INSERT INTO admin_users (id, active, created_at, display_name, password_digest, updated_at, username, email) VALUES (3, TRUE, '2026-03-26 14:59:58.191114', 'bminer', '$2a$12$Qx22QrKcuzNKG97PSSkuAujIB6/QIJsKJgVwlnz1616VutgMi1XK2', '2026-03-26 14:59:58.191114', 'bminer', NULL);
+INSERT INTO admin_users (id, active, created_at, display_name, password_digest, updated_at, username, email) VALUES (4, TRUE, '2026-03-26 14:59:58.359359', 'wamo', '$2a$12$b5Qxp7OY/kADv8s53vOsXu7Ok8PDGYXWd4SmU7/Hd8exZoptKglMC', '2026-03-26 14:59:58.359359', 'wamo', NULL);
+SELECT setval('admin_users_id_seq', (SELECT MAX(id) FROM admin_users));
+
 TRUNCATE submissions RESTART IDENTITY CASCADE;
 
 INSERT INTO submissions (id, activity_date, converted_miles, created_at, flagged, imported, input_type, input_value, name, updated_at, site) VALUES (1329, '2025-09-15', 40.0000, '2026-03-26 14:45:39.339189', FALSE, TRUE, 'miles', 40.0000, 'Wayne Amo', '2026-03-26 14:45:39.339189', NULL);
