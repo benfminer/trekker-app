@@ -101,12 +101,12 @@ class SubmissionTest < ActiveSupport::TestCase
   # Step conversion
   # ---------------------------------------------------------------------------
 
-  test "converts steps to miles at 2500 steps per mile" do
+  test "converts steps to miles at 2250 steps per mile" do
     sub = Submission.new(
       name:          "Runner",
       activity_date: Date.today,
       input_type:    "steps",
-      input_value:   2500.0
+      input_value:   2250.0
     )
     sub.valid?
     assert_equal 1.0, sub.converted_miles.to_f

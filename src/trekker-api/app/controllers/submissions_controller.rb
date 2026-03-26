@@ -5,7 +5,7 @@
 # POST /submissions
 #   Accepts name, activity_date, input_type ("miles" | "steps"), input_value,
 #   and optional site ("trace_north" | "trace_south" | "trace_east" | "trace_west").
-#   Converts steps → miles at 2500 steps/mile (handled by Submission model).
+#   Converts steps → miles at 2250 steps/mile (handled by Submission model).
 #   After a successful save, runs MilestoneTriggerService to check for newly
 #   crossed milestones.
 #   Returns 201 with the submission record, or 422 with validation errors.

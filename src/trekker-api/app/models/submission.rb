@@ -4,7 +4,7 @@
 # required — the form is fully open. `imported: true` marks records that
 # were loaded from historical CSV exports rather than submitted live.
 #
-# Step conversion: when input_type == "steps", converted_miles = input_value / 2500.
+# Step conversion: when input_type == "steps", converted_miles = input_value / 2250.
 # When input_type == "miles", converted_miles = input_value exactly.
 # converted_miles is always stored explicitly so SUM queries stay simple.
 #
@@ -12,7 +12,7 @@
 # campus and included in leaderboard aggregation. When nil (including all
 # historical imported records), it counts toward the global map total only.
 class Submission < ApplicationRecord
-  STEPS_PER_MILE = 2500.0
+  STEPS_PER_MILE = 2250.0
   VALID_INPUT_TYPES = %w[miles steps].freeze
   VALID_SITES = %w[trace_north trace_south trace_east trace_west].freeze
 

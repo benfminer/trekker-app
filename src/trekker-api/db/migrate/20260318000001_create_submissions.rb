@@ -33,7 +33,7 @@ class CreateSubmissions < ActiveRecord::Migration[7.2]
       t.decimal :input_value, precision: 10, scale: 4, null: false
 
       # Computed miles. If input_type is "miles", this equals input_value.
-      # If input_type is "steps", this equals input_value / 2500.0.
+      # If input_type is "steps", this equals input_value / 2250.0.
       # Stored here so aggregate queries are a simple SUM without needing
       # inline CASE expressions everywhere.
       t.decimal :converted_miles, precision: 10, scale: 4, null: false
