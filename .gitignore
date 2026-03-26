@@ -11,3 +11,4 @@ docs/content/.DS_Store
 GEMINI.md
 project-auditor.skill
 skills-dev/
+local_dump.sql
