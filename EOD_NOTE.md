@@ -2,38 +2,36 @@
 
 ## Where Things Stand
 
-Production deployment is in progress. Real data (283 submissions, milestones, admin accounts) has been committed as a SQL import file but has NOT yet been loaded into the production database — that step is still pending.
+Admin page is significantly more powerful. Server-side sort, date/miles filtering, enhanced pagination, and a UX polish pass are all implemented and tested. Launch is April 1 — core admin functionality is solid.
 
 ## Completed Today
 
-- Fixed step conversion: `STEPS_PER_MILE` changed from 2500 → 2250 to match historical spreadsheet rate
-- Updated step conversion test and submission controller comment
-- Revised launch announcement email (stronger CTA, real production URLs, Campus Trail references)
-- Generated `db/import_real_data.sql` — 283 real submissions + milestones + admin accounts (bminer, wamo)
-- Committed and pushed import SQL to repo
+- Added `sort_by` / `sort_dir` params to Rails `Admin::SubmissionsController#index` (whitelisted, SQL-injection safe)
+- Added `date_from` / `date_to` filtering on `activity_date`
+- Added `miles_min` / `miles_max` filtering on `converted_miles`
+- Clamped `per_page` to max 100
+- Extended `AdminSubmissionsParams` in `types.ts` and `getAdminSubmissions` in `api.ts`
+- AdminPage: sortable Date/Miles column headers, date/miles filter bar, per-page selector, First/Last/jump pagination
+- UX polish: collapsed filter bar to one row, removed Apply button (blur/Enter commit), × clear button, demoted First/Last, per-page moved to left side
+- Fixed pre-existing test failure: step conversion test updated for 2250 steps/mile
+- 12 new Rails controller tests + 156 frontend tests all passing
 
 ## In Progress
 
-- **Loading real data into production** — Render external DB connections are blocked from local (port 5432 refused despite 0.0.0.0/0 ACL). Import SQL is in the deployed repo and ready to run.
+- Nothing — all changes are uncommitted but complete and tested
 
 ## Pick Up Here Tomorrow
 
-Run the import from the Render Shell. In Render dashboard → `trekker-api` → Shell:
-
-```bash
-psql $DATABASE_URL -f db/import_real_data.sql
-```
-
-Then verify: `psql $DATABASE_URL -c "SELECT COUNT(*) FROM submissions;"` should return 283.
+Commit today's work first. All 7 changed files are ready to stage and commit.
 
 ## Open Questions
 
-- Why is Render's external DB port 5432 blocked? (Status shows Available, ACL allows 0.0.0.0/0 — may be a network/ISP issue on Ben's side)
-- `local_dump.sql` is sitting untracked in the repo root — delete it or add to `.gitignore`
-- `IPHONE_APP_EXPLORATION.md` is untracked — commit or delete?
+- workability has 1 unpushed commit — worth pushing before launch week?
+- Any remaining admin features needed before April 1?
 
 ## Reminders
 
-- Re-index if new files were added: `mlx-server index`
-- Server needs to be started: `mlx-server start`
-- Activate venv if needed: `source ~/Developer/mlx-agent-system/.venv/bin/activate`
+- Start MLX server: `mlx-server start`
+- Rails dev server: `cd src/trekker-api && bin/rails server`
+- Frontend dev server: `cd src/trekker-frontend && npm run dev`
+- All tests passing: Rails 48/48, Frontend 156/156

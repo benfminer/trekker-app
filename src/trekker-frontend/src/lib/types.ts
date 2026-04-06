@@ -80,6 +80,12 @@ export interface AdminSubmissionsParams {
   page?: number
   per_page?: number
   imported?: boolean
+  sort_by?: "date" | "miles"
+  sort_dir?: "asc" | "desc"
+  date_from?: string
+  date_to?: string
+  miles_min?: number
+  miles_max?: number
 }
 
 // ---------------------------------------------------------------------------

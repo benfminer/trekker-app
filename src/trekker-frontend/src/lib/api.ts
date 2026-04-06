@@ -144,6 +144,12 @@ export function getAdminSubmissions(
   if (params.page !== undefined) search.set("page", String(params.page))
   if (params.per_page !== undefined) search.set("per_page", String(params.per_page))
   if (params.imported !== undefined) search.set("imported", String(params.imported))
+  if (params.sort_by !== undefined) search.set("sort_by", params.sort_by)
+  if (params.sort_dir !== undefined) search.set("sort_dir", params.sort_dir)
+  if (params.date_from !== undefined) search.set("date_from", params.date_from)
+  if (params.date_to !== undefined) search.set("date_to", params.date_to)
+  if (params.miles_min !== undefined) search.set("miles_min", String(params.miles_min))
+  if (params.miles_max !== undefined) search.set("miles_max", String(params.miles_max))
 
   const query = search.toString()
   const path = query ? `/admin/submissions?${query}` : "/admin/submissions"

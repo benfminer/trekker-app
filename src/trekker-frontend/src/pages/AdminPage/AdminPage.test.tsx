@@ -326,7 +326,7 @@ describe("AdminPage", () => {
 
       await user.type(screen.getByPlaceholderText("Search by name..."), "PE")
 
-      expect(screen.getByRole("button", { name: /clear filters/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /clear all filters/i })).toBeInTheDocument()
     })
 
     it("restores all rows after Clear filters is clicked", async () => {
@@ -343,7 +343,7 @@ describe("AdminPage", () => {
       })
 
       // There may be multiple clear-filters buttons (in bar + empty state)
-      await user.click(screen.getAllByRole("button", { name: /clear filters/i })[0])
+      await user.click(screen.getAllByRole("button", { name: /clear all filters/i })[0])
 
       await waitFor(() => {
         expect(screen.getByText("David M.")).toBeInTheDocument()

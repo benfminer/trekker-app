@@ -14,13 +14,18 @@ module Admin
     # GET /admin/submissions
     #
     # Params:
-    #   page     [Integer] 1-based page number (default: 1)
-    #   per_page [Integer] records per page (default: 50, max: 200)
-    #   imported [String]  "true" or "false" to filter by imported status
-    #   flagged  [String]  "true" or "false" to filter by flagged status
-    #   site     [String]  one of the four campus slugs, or "none" for untagged
-    #   search   [String]  case-insensitive substring match on name
-    #   sort     [String]  "date_desc" (default) — reserved for future sort options
+    #   page      [Integer] 1-based page number (default: 1)
+    #   per_page  [Integer] records per page (default: 50, max: 100)
+    #   imported  [String]  "true" or "false" to filter by imported status
+    #   flagged   [String]  "true" or "false" to filter by flagged status
+    #   site      [String]  one of the four campus slugs, or "none" for untagged
+    #   search    [String]  case-insensitive substring match on name
+    #   sort_by   [String]  "date" (default) or "miles"
+    #   sort_dir  [String]  "desc" (default) or "asc"
+    #   date_from [String]  ISO8601 date — filter activity_date >= this value
+    #   date_to   [String]  ISO8601 date — filter activity_date <= this value
+    #   miles_min [Float]   filter converted_miles >= this value
+    #   miles_max [Float]   filter converted_miles <= this value
     #
     # Returns:
     #   200 {
@@ -28,7 +33,7 @@ module Admin
     #     meta: { page, per_page, total_count, total_pages }
     #   }
     def index
-      scope = Submission.by_date_desc
+      scope = Submission.all
 
       # Filter by imported status when the param is explicitly provided.
       # Absent param = no filter (return all).
@@ -57,7 +62,42 @@ module Admin
         scope = scope.where("name ILIKE ?", "%#{params[:search].strip}%")
       end
 
-      per_page    = [[params.fetch(:per_page, 50).to_i, 1].max, 200].min
+      # Date range filter on activity_date.
+      # rescue nil silently ignores malformed date strings instead of raising.
+      if params[:date_from].present?
+        date_from = Date.parse(params[:date_from]) rescue nil
+        scope = scope.where("activity_date >= ?", date_from) if date_from
+      end
+
+      if params[:date_to].present?
+        date_to = Date.parse(params[:date_to]) rescue nil
+        scope = scope.where("activity_date <= ?", date_to) if date_to
+      end
+
+      # Miles range filter on the stored converted_miles column.
+      if params[:miles_min].present?
+        scope = scope.where("converted_miles >= ?", params[:miles_min].to_f)
+      end
+
+      if params[:miles_max].present?
+        scope = scope.where("converted_miles <= ?", params[:miles_max].to_f)
+      end
+
+      # Sort — WHITELIST the column name to prevent SQL injection.
+      # Never interpolate params[:sort_by] directly into .order().
+      sort_column = case params[:sort_by]
+                    when "miles" then :converted_miles
+                    else :activity_date  # "date" or anything unknown → activity_date
+                    end
+
+      sort_direction = case params[:sort_dir]
+                       when "asc" then :asc
+                       else :desc  # "desc" or anything unknown → desc
+                       end
+
+      scope = scope.order(sort_column => sort_direction)
+
+      per_page    = [[params.fetch(:per_page, 50).to_i, 1].max, 100].min
       page        = [params.fetch(:page, 1).to_i, 1].max
       offset      = (page - 1) * per_page
       total_count = scope.count

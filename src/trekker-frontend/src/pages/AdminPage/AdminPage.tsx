@@ -20,7 +20,7 @@ import type { InputType, Submission, SubmissionsMeta } from "../../lib/types"
 // Constants
 // ---------------------------------------------------------------------------
 
-const PER_PAGE = 50
+const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -607,6 +607,25 @@ export default function AdminPage() {
   const [filterMode, setFilterMode] = useState<FilterMode>("all")
   const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(50)
+
+  // Sort state — changes trigger an immediate refetch
+  const [sortBy, setSortBy] = useState<"date" | "miles">("date")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+
+  // Date/miles filter — "pending" values are what the user is typing;
+  // "applied" values are what was last submitted via Apply and drive the fetch.
+  const [pendingDateFrom, setPendingDateFrom] = useState("")
+  const [pendingDateTo, setPendingDateTo] = useState("")
+  const [pendingMilesMin, setPendingMilesMin] = useState("")
+  const [pendingMilesMax, setPendingMilesMax] = useState("")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+  const [milesMin, setMilesMin] = useState("")
+  const [milesMax, setMilesMax] = useState("")
+
+  // Page jump input — string so the field can be empty mid-edit
+  const [pageJump, setPageJump] = useState("")
 
   // ---- Row interaction state -----------------------------------------------
   const [rowStates, setRowStates] = useState<Record<number, RowState>>({})
@@ -640,7 +659,19 @@ export default function AdminPage() {
   // `flaggedOnly` is applied client-side after fetch since it is not in the
   // AdminSubmissionsParams type — the server does not expose that filter param.
   const fetchSubmissions = useCallback(
-    async (targetPage: number, mode: FilterMode) => {
+    async (
+      targetPage: number,
+      mode: FilterMode,
+      opts: {
+        perPage: number
+        sortBy: "date" | "miles"
+        sortDir: "asc" | "desc"
+        dateFrom: string
+        dateTo: string
+        milesMin: string
+        milesMax: string
+      }
+    ) => {
       setLoading(true)
       setFetchError(null)
 
@@ -655,7 +686,17 @@ export default function AdminPage() {
           mode === "live" ? false : mode === "imported" ? true : undefined
 
         const response = await getAdminSubmissions(
-          { page: targetPage, per_page: PER_PAGE, imported },
+          {
+            page: targetPage,
+            per_page: opts.perPage,
+            imported,
+            sort_by: opts.sortBy,
+            sort_dir: opts.sortDir,
+            date_from: opts.dateFrom || undefined,
+            date_to: opts.dateTo || undefined,
+            miles_min: opts.milesMin ? parseFloat(opts.milesMin) : undefined,
+            miles_max: opts.milesMax ? parseFloat(opts.milesMax) : undefined,
+          },
           token
         )
 
@@ -676,8 +717,8 @@ export default function AdminPage() {
   )
 
   useEffect(() => {
-    fetchSubmissions(page, filterMode)
-  }, [fetchSubmissions, page, filterMode])
+    fetchSubmissions(page, filterMode, { perPage, sortBy, sortDir, dateFrom, dateTo, milesMin, milesMax })
+  }, [fetchSubmissions, page, filterMode, perPage, sortBy, sortDir, dateFrom, dateTo, milesMin, milesMax])
 
   // ---- Client-side filtering -----------------------------------------------
   const filteredSubmissions = submissions.filter((s) => {
@@ -687,8 +728,10 @@ export default function AdminPage() {
     return true
   })
 
+  const hasActiveDateMilesFilter = !!(dateFrom || dateTo || milesMin || milesMax)
+
   const hasActiveFilters =
-    search.trim() !== "" || filterMode !== "all" || flaggedOnly
+    search.trim() !== "" || filterMode !== "all" || flaggedOnly || hasActiveDateMilesFilter
 
   // ---- Logout --------------------------------------------------------------
   async function handleLogout() {
@@ -879,15 +922,57 @@ export default function AdminPage() {
     setSearch("")
     setFilterMode("all")
     setFlaggedOnly(false)
+    setPendingDateFrom("")
+    setPendingDateTo("")
+    setPendingMilesMin("")
+    setPendingMilesMax("")
+    setDateFrom("")
+    setDateTo("")
+    setMilesMin("")
+    setMilesMax("")
     setPage(1)
+  }
+
+  // ---- Sort ----------------------------------------------------------------
+  function handleSortToggle(column: "date" | "miles") {
+    const newDir = sortBy === column ? (sortDir === "desc" ? "asc" : "desc") : "desc"
+    setSortBy(column)
+    setSortDir(newDir)
+    setPage(1)
+  }
+
+  // ---- Date/miles filter ---------------------------------------------------
+  // Commits pending state → applied state on blur or Enter keypress.
+  // No Apply button needed — matches the immediate pattern of the other filters.
+  function commitDateMilesFilter() {
+    setDateFrom(pendingDateFrom)
+    setDateTo(pendingDateTo)
+    setMilesMin(pendingMilesMin)
+    setMilesMax(pendingMilesMax)
+    setPage(1)
+  }
+
+  // ---- Per-page -----------------------------------------------------------
+  function handlePerPageChange(e: ChangeEvent<HTMLSelectElement>) {
+    setPerPage(Number(e.target.value))
+    setPage(1)
+  }
+
+  // ---- Page jump ----------------------------------------------------------
+  function handlePageJumpCommit() {
+    const parsed = parseInt(pageJump, 10)
+    if (!isNaN(parsed)) {
+      setPage(Math.max(1, Math.min(parsed, totalPages)))
+    }
+    setPageJump("")
   }
 
   // ---- Pagination ----------------------------------------------------------
   const totalPages = meta?.total_pages ?? 1
   const totalCount = meta?.total_count ?? 0
-  const pageStart = (page - 1) * PER_PAGE + 1
-  const pageEnd = Math.min(page * PER_PAGE, totalCount)
-  const showPagination = totalCount > PER_PAGE
+  const pageStart = (page - 1) * perPage + 1
+  const pageEnd = Math.min(page * perPage, totalCount)
+  const showPagination = totalCount > perPage
 
   // ---- Render --------------------------------------------------------------
   return (
@@ -1040,42 +1125,39 @@ export default function AdminPage() {
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* Filter bar                                                           */}
+      {/* Filter bar — single row                                              */}
       {/* ------------------------------------------------------------------ */}
       <div className="mx-auto mt-4 w-full max-w-[1200px] px-6">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Search input */}
+        <div className="flex flex-wrap items-center gap-3">
+
+          {/* Search */}
           <input
             type="text"
             placeholder="Search by name..."
             value={search}
             onChange={handleSearchChange}
-            className="rounded-md px-4 py-2 text-[14px] outline-none transition-colors duration-100"
+            className="h-8 rounded-md px-3 text-[13px] outline-none transition-colors duration-100"
             style={{
-              flex: "1 1 200px",
-              maxWidth: "400px",
+              flex: "1 1 160px",
+              maxWidth: "260px",
               background: "#111111",
               border: "1px solid #2a2a2a",
               color: "#e5e7eb",
             }}
-            onFocus={(e) => {
-              ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316"
-            }}
-            onBlur={(e) => {
-              ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a"
-            }}
+            onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+            onBlur={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a" }}
           />
 
-          {/* Source filter: All / Live / Imported */}
+          {/* Source toggle */}
           <div
-            className="flex items-center gap-1 rounded-md p-1"
+            className="flex h-8 items-center gap-1 rounded-md p-1"
             style={{ background: "#111111", border: "1px solid #2a2a2a" }}
           >
             {(["all", "live", "imported"] as FilterMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => handleFilterModeChange(mode)}
-                className="rounded px-3 py-1 text-[13px] capitalize transition-colors duration-100"
+                className="rounded px-2.5 py-0.5 text-[12px] capitalize transition-colors duration-100"
                 style={{
                   background: filterMode === mode ? "#1f1f1f" : "transparent",
                   color: filterMode === mode ? "#e5e7eb" : "#6b7280",
@@ -1087,38 +1169,96 @@ export default function AdminPage() {
           </div>
 
           {/* Flagged only */}
-          <label
-            className="flex cursor-pointer items-center gap-2 text-[14px]"
-            style={{ color: "#d1d5db" }}
-          >
-            <input
-              type="checkbox"
-              checked={flaggedOnly}
-              onChange={handleFlaggedOnlyChange}
-              className="accent-[#f97316]"
-            />
-            Flagged only
+          <label className="flex h-8 cursor-pointer items-center gap-1.5 text-[13px]" style={{ color: "#9ca3af" }}>
+            <input type="checkbox" checked={flaggedOnly} onChange={handleFlaggedOnlyChange} className="accent-[#f97316]" />
+            Flagged
           </label>
-        </div>
 
-        {/* Clear filters */}
-        {hasActiveFilters && (
-          <div className="mt-2 flex justify-end">
+          {/* Separator */}
+          <span className="hidden h-4 w-px sm:block" style={{ background: "#2a2a2a" }} />
+
+          {/* Date range */}
+          <input
+            type="date"
+            value={pendingDateFrom}
+            onChange={(e) => setPendingDateFrom(e.target.value)}
+            onBlur={commitDateMilesFilter}
+            onKeyDown={(e) => { if (e.key === "Enter") commitDateMilesFilter() }}
+            placeholder="From"
+            className="h-8 w-[130px] rounded px-2 text-[13px] outline-none"
+            style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#e5e7eb" }}
+            onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+          />
+          <span className="text-[12px]" style={{ color: "#4b5563" }}>–</span>
+          <input
+            type="date"
+            value={pendingDateTo}
+            onChange={(e) => setPendingDateTo(e.target.value)}
+            onBlur={commitDateMilesFilter}
+            onKeyDown={(e) => { if (e.key === "Enter") commitDateMilesFilter() }}
+            placeholder="To"
+            className="h-8 w-[130px] rounded px-2 text-[13px] outline-none"
+            style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#e5e7eb" }}
+            onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+            onBlur={(e) => {
+              ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a"
+              commitDateMilesFilter()
+            }}
+          />
+
+          {/* Separator */}
+          <span className="hidden h-4 w-px sm:block" style={{ background: "#2a2a2a" }} />
+
+          {/* Miles range */}
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="Mi min"
+            value={pendingMilesMin}
+            onChange={(e) => setPendingMilesMin(e.target.value)}
+            onBlur={(e) => {
+              ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a"
+              commitDateMilesFilter()
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") commitDateMilesFilter() }}
+            className="h-8 w-16 rounded px-2 text-[13px] outline-none"
+            style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#e5e7eb" }}
+            onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+          />
+          <span className="text-[12px]" style={{ color: "#4b5563" }}>–</span>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="Max"
+            value={pendingMilesMax}
+            onChange={(e) => setPendingMilesMax(e.target.value)}
+            onBlur={(e) => {
+              ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a"
+              commitDateMilesFilter()
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") commitDateMilesFilter() }}
+            className="h-8 w-16 rounded px-2 text-[13px] outline-none"
+            style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#e5e7eb" }}
+            onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+          />
+
+          {/* Clear filters × — only shown when any filter is active */}
+          {hasActiveFilters && (
             <button
               onClick={handleClearFilters}
-              className="text-[13px] transition-colors duration-100"
-              style={{ color: "#f97316" }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.color = "#ea6c0a"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.color = "#f97316"
-              }}
+              aria-label="Clear all filters"
+              className="ml-1 flex h-8 w-8 items-center justify-center rounded transition-colors duration-100"
+              style={{ color: "#6b7280" }}
+              onMouseEnter={(e) => { ;(e.currentTarget as HTMLButtonElement).style.color = "#f97316" }}
+              onMouseLeave={(e) => { ;(e.currentTarget as HTMLButtonElement).style.color = "#6b7280" }}
+              title="Clear all filters"
             >
-              Clear filters
+              ×
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
@@ -1136,7 +1276,7 @@ export default function AdminPage() {
           >
             <span>Could not load submissions.</span>
             <button
-              onClick={() => fetchSubmissions(page, filterMode)}
+              onClick={() => fetchSubmissions(page, filterMode, { perPage, sortBy, sortDir, dateFrom, dateTo, milesMin, milesMax })}
               className="transition-colors duration-100"
               style={{ color: "#f97316" }}
             >
@@ -1161,32 +1301,53 @@ export default function AdminPage() {
             >
               {[
                 { label: "Name", w: "22%" },
-                { label: "Date", w: "10%" },
+                { label: "Date", w: "10%", sortKey: "date" as const },
                 { label: "Type", w: "8%", hidden: true },
                 { label: "Input", w: "10%", hiddenLg: true },
-                { label: "Miles", w: "10%" },
+                { label: "Miles", w: "10%", sortKey: "miles" as const },
                 { label: "Source", w: "8%", hidden: true },
                 { label: "Flag", w: "8%", srOnly: true },
                 { label: "Actions", w: "14%", srOnly: true },
-              ].map((col) => (
-                <th
-                  key={col.label}
-                  className={[
-                    "px-4 py-3 text-[12px] font-medium uppercase tracking-[0.05em]",
-                    col.hidden ? "hidden sm:table-cell" : "",
-                    col.hiddenLg ? "hidden lg:table-cell" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  style={{ width: col.w, color: "#6b7280" }}
-                >
-                  {col.srOnly ? (
-                    <span className="sr-only">{col.label}</span>
-                  ) : (
-                    col.label
-                  )}
-                </th>
-              ))}
+              ].map((col) => {
+                const isActiveSort = col.sortKey && sortBy === col.sortKey
+                return (
+                  <th
+                    key={col.label}
+                    onClick={col.sortKey ? () => handleSortToggle(col.sortKey!) : undefined}
+                    title={col.sortKey ? `Sort by ${col.sortKey}` : undefined}
+                    className={[
+                      "px-4 py-3 text-[12px] uppercase tracking-[0.05em] transition-colors duration-100",
+                      col.hidden ? "hidden sm:table-cell" : "",
+                      col.hiddenLg ? "hidden lg:table-cell" : "",
+                      col.sortKey ? "cursor-pointer select-none" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={{
+                      width: col.w,
+                      color: isActiveSort ? "#e5e7eb" : "#6b7280",
+                      fontWeight: isActiveSort ? 600 : 500,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (col.sortKey) (e.currentTarget as HTMLTableCellElement).style.background = "#141414"
+                    }}
+                    onMouseLeave={(e) => {
+                      if (col.sortKey) (e.currentTarget as HTMLTableCellElement).style.background = "transparent"
+                    }}
+                  >
+                    {col.srOnly ? (
+                      <span className="sr-only">{col.label}</span>
+                    ) : (
+                      <>
+                        {col.label}
+                        {isActiveSort && (
+                          <span className="ml-1">{sortDir === "desc" ? "↓" : "↑"}</span>
+                        )}
+                      </>
+                    )}
+                  </th>
+                )
+              })}
             </tr>
           </thead>
 
@@ -1248,52 +1409,103 @@ export default function AdminPage() {
           className="mx-auto w-full max-w-[1200px] px-6 py-4"
           style={{ borderTop: "1px solid #1f1f1f" }}
         >
-          <div className="flex items-center justify-between text-[13px]">
-            <span style={{ color: "#9ca3af" }}>
-              Showing {pageStart}–{pageEnd} of {totalCount.toLocaleString()}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-4 text-[13px]">
 
-            <div className="flex items-center gap-6">
+            {/* Left: count + per-page selector */}
+            <div className="flex items-center gap-3" style={{ color: "#9ca3af" }}>
+              <span>Showing {pageStart}–{pageEnd} of {totalCount.toLocaleString()}</span>
+              <span style={{ color: "#2a2a2a" }}>·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[12px]">Show:</span>
+                <select
+                  value={perPage}
+                  onChange={handlePerPageChange}
+                  className="rounded px-1.5 py-0.5 text-[12px] outline-none"
+                  style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#9ca3af" }}
+                >
+                  {PER_PAGE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Right: navigation */}
+            <div className="flex items-center gap-3">
+              {/* First — demoted, utility nav */}
+              <button
+                onClick={() => setPage(1)}
+                disabled={page <= 1}
+                className="text-[12px] disabled:cursor-not-allowed"
+                style={{ color: page <= 1 ? "#2a2a2a" : "#4b5563" }}
+              >
+                ← First
+              </button>
+
+              {/* Prev — primary nav */}
               <button
                 onClick={() => setPage((p) => p - 1)}
                 disabled={page <= 1}
                 className="transition-colors duration-100 disabled:cursor-not-allowed"
                 style={{ color: page <= 1 ? "#2a2a2a" : "#e5e7eb" }}
                 onMouseEnter={(e) => {
-                  if (page > 1) {
-                    ;(e.currentTarget as HTMLButtonElement).style.color = "#f97316"
-                  }
+                  if (page > 1) (e.currentTarget as HTMLButtonElement).style.color = "#f97316"
                 }}
                 onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLButtonElement).style.color =
-                    page <= 1 ? "#2a2a2a" : "#e5e7eb"
+                  (e.currentTarget as HTMLButtonElement).style.color = page <= 1 ? "#2a2a2a" : "#e5e7eb"
                 }}
               >
                 ← Prev
               </button>
 
-              <span style={{ color: "#6b7280" }}>
-                Page {page} of {totalPages}
-              </span>
+              {/* Page jump */}
+              <div className="flex items-center gap-1.5" style={{ color: "#6b7280" }}>
+                <span>Page</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={pageJump || String(page)}
+                  onChange={(e) => setPageJump(e.target.value)}
+                  onBlur={handlePageJumpCommit}
+                  onKeyDown={(e) => { if (e.key === "Enter") handlePageJumpCommit() }}
+                  className="w-10 rounded px-1 py-0.5 text-center text-[13px] outline-none"
+                  style={{ background: "#111111", border: "1px solid #2a2a2a", color: "#e5e7eb" }}
+                  onFocus={(e) => { ;(e.currentTarget as HTMLInputElement).style.borderColor = "#f97316" }}
+                  onBlur={(e) => {
+                    ;(e.currentTarget as HTMLInputElement).style.borderColor = "#2a2a2a"
+                    handlePageJumpCommit()
+                  }}
+                />
+                <span>of {totalPages}</span>
+              </div>
 
+              {/* Next — primary nav */}
               <button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={page >= totalPages}
                 className="transition-colors duration-100 disabled:cursor-not-allowed"
                 style={{ color: page >= totalPages ? "#2a2a2a" : "#e5e7eb" }}
                 onMouseEnter={(e) => {
-                  if (page < totalPages) {
-                    ;(e.currentTarget as HTMLButtonElement).style.color = "#f97316"
-                  }
+                  if (page < totalPages) (e.currentTarget as HTMLButtonElement).style.color = "#f97316"
                 }}
                 onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLButtonElement).style.color =
-                    page >= totalPages ? "#2a2a2a" : "#e5e7eb"
+                  (e.currentTarget as HTMLButtonElement).style.color = page >= totalPages ? "#2a2a2a" : "#e5e7eb"
                 }}
               >
                 Next →
               </button>
+
+              {/* Last — demoted, utility nav */}
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={page >= totalPages}
+                className="text-[12px] disabled:cursor-not-allowed"
+                style={{ color: page >= totalPages ? "#2a2a2a" : "#4b5563" }}
+              >
+                Last →
+              </button>
             </div>
+
           </div>
         </div>
       )}

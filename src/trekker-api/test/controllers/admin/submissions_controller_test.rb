@@ -127,6 +127,125 @@ module Admin
       assert body["submissions"].first["flagged"]
     end
 
+    # -------------------------------------------------------------------------
+    # Sort params
+    # -------------------------------------------------------------------------
+
+    test "sort_by=miles returns submissions ordered by converted_miles descending" do
+      get admin_submissions_path, params: { sort_by: "miles", sort_dir: "desc" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      miles = body["submissions"].map { |s| s["converted_miles"].to_f }
+      assert_equal miles, miles.sort.reverse
+    end
+
+    test "sort_by=miles sort_dir=asc returns submissions ordered by converted_miles ascending" do
+      get admin_submissions_path, params: { sort_by: "miles", sort_dir: "asc" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      miles = body["submissions"].map { |s| s["converted_miles"].to_f }
+      assert_equal miles, miles.sort
+    end
+
+    test "sort_by=date sort_dir=asc returns submissions ordered by activity_date ascending" do
+      get admin_submissions_path, params: { sort_by: "date", sort_dir: "asc" }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      dates = body["submissions"].map { |s| Date.parse(s["activity_date"]) }
+      assert_equal dates, dates.sort
+    end
+
+    test "invalid sort_by value falls back to activity_date safely (no SQL injection)" do
+      # Passing a SQL fragment as sort_by should not raise and should return a valid response
+      get admin_submissions_path,
+          params: { sort_by: "converted_miles; DROP TABLE submissions; --" },
+          headers: auth_header
+
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert body.key?("submissions")
+      # Confirm submissions table still exists and has records
+      assert Submission.count > 0
+    end
+
+    # -------------------------------------------------------------------------
+    # Date range filter
+    # -------------------------------------------------------------------------
+
+    test "date_from filters out submissions before that date" do
+      # Use a date we know is after the earliest fixture
+      latest_date = Submission.maximum(:activity_date).to_s
+      get admin_submissions_path, params: { date_from: latest_date }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        assert Date.parse(s["activity_date"]) >= Date.parse(latest_date)
+      end
+    end
+
+    test "date_to filters out submissions after that date" do
+      earliest_date = Submission.minimum(:activity_date).to_s
+      get admin_submissions_path, params: { date_to: earliest_date }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        assert Date.parse(s["activity_date"]) <= Date.parse(earliest_date)
+      end
+    end
+
+    test "malformed date_from is ignored and returns all results" do
+      get admin_submissions_path, params: { date_from: "not-a-date" }, headers: auth_header
+
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal Submission.count, body["meta"]["total_count"]
+    end
+
+    # -------------------------------------------------------------------------
+    # Miles range filter
+    # -------------------------------------------------------------------------
+
+    test "miles_min filters out submissions below the threshold" do
+      threshold = 2.0
+      get admin_submissions_path, params: { miles_min: threshold }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        assert s["converted_miles"].to_f >= threshold
+      end
+    end
+
+    test "miles_max filters out submissions above the threshold" do
+      threshold = 3.0
+      get admin_submissions_path, params: { miles_max: threshold }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        assert s["converted_miles"].to_f <= threshold
+      end
+    end
+
+    test "miles_min and miles_max combined narrow the result set" do
+      get admin_submissions_path, params: { miles_min: 1.0, miles_max: 5.0 }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      body["submissions"].each do |s|
+        miles = s["converted_miles"].to_f
+        assert miles >= 1.0 && miles <= 5.0
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Per-page clamping
+    # -------------------------------------------------------------------------
+
+    test "per_page is clamped to 100 maximum" do
+      get admin_submissions_path, params: { per_page: 500 }, headers: auth_header
+
+      body = JSON.parse(response.body)
+      assert_equal 100, body["meta"]["per_page"]
+    end
+
     test "returns 401 without Authorization header" do
       get admin_submissions_path, as: :json
       assert_response :unauthorized
@@ -176,7 +295,8 @@ module Admin
 
       assert_response :ok
       body = JSON.parse(response.body)
-      assert_in_delta 2.0, body["submission"]["converted_miles"], 0.001
+      # 5000 steps / 2250 steps-per-mile = 2.222...
+      assert_in_delta 5000.0 / 2250.0, body["submission"]["converted_miles"], 0.001
     end
 
     test "returns 422 when update params are invalid" do
